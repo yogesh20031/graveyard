@@ -1,26 +1,127 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------------------------------------------------------------------------
+ * Theme tokens
+ *
+ * Every theme is one [data-theme="…"] block. Components never reference raw
+ * hex values — only the semantic tokens below (via Tailwind classes like
+ * bg-background / text-accent), so a future theme picker only has to change
+ * the data-theme attribute on <html>. See docs/THEMING.md.
+ * ------------------------------------------------------------------------- */
+
+[data-theme="graveyard"] {
+  --background: #0d1118; /* deep night blue-black */
+  --surface: #060810; /* darker night — ground, silhouettes, panels */
+  --foreground: #e8e2d3; /* pale bone / moonlight */
+  --accent: #b8823a; /* burnt lantern amber */
+  --accent-bright: #d9a45b; /* lit-up amber for hover states */
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-cinzel);
+  /* carved-into-stone letter spacing, shared by buttons/overlines/epitaphs */
+  --tracking-etched: 0.25em;
+  /* lantern glow used on button hover */
+  --shadow-glow: 0 0 20px color-mix(in oklab, var(--accent), transparent 55%);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+ * Scene helpers — atmospheric bits that need real CSS (gradients, keyframes).
+ * color-mix keeps them theme-aware instead of hardcoding hexes.
+ * ------------------------------------------------------------------------- */
+
+.night-sky {
+  background: linear-gradient(
+    to bottom,
+    var(--surface) 0%,
+    var(--background) 55%,
+    color-mix(in oklab, var(--background), var(--foreground) 7%) 100%
+  );
+}
+
+@keyframes fog-drift {
+  0%,
+  100% {
+    transform: translateX(-4%);
+  }
+  50% {
+    transform: translateX(4%);
+  }
+}
+
+.fog-layer {
+  animation: fog-drift 30s ease-in-out infinite;
+}
+
+.fog-layer-slow {
+  animation: fog-drift 45s ease-in-out infinite reverse;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.star {
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.star-slow {
+  animation: twinkle 7s ease-in-out 2s infinite;
+}
+
+@keyframes lantern-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.lantern-glow {
+  animation: lantern-pulse 5s ease-in-out infinite;
+}
+
+@keyframes cue-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(0.5rem);
+  }
+}
+
+.scroll-cue {
+  animation: cue-bounce 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fog-layer,
+  .fog-layer-slow,
+  .star,
+  .star-slow,
+  .lantern-glow,
+  .scroll-cue {
+    animation: none;
+  }
 }
