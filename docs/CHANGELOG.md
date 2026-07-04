@@ -3,6 +3,37 @@
 All notable changes, grouped by phase. See [ROADMAP.md](./ROADMAP.md) for
 what each phase covers.
 
+## Phase 1 fine-tune — creepier skull, darker hover, fuller scene — 2026-07-04
+
+### Added
+
+- **Scene depth, per Yogesh's reference image** — the graveyard no longer
+  stops at the fence:
+  - Mid-distance (`HillsLayer`): mausoleum with a cross finial and a
+    faintly lit doorway, eight distant stones/crosses along the hill
+    crest, a dead tree reaching toward the moon
+  - Foreground (`ForegroundLayer`): two gnarled bare trees framing the
+    scene, a celtic-cross headstone, a weeping-angel statue, six grave
+    candles guttering on staggered flicker timings, an iron lamp post
+    lighting the path inside the gate, broken slabs + dry grass along the
+    ground, and a crow with one amber eye watching from a branch
+  - `candle-flicker` / `-offset` / `-slow` classes reuse the
+    `lantern-flicker` keyframes at shorter cycles; static dim under
+    `prefers-reduced-motion`
+  - Shared geometry (`DISTANT_STONES`, `CANDLES`, `tombstonePath` with a
+    `baseY` param) lives in `scene/geometry.ts`
+
+### Changed
+
+- **Button skull is now conditional** — `Button` takes a `skull` prop
+  instead of callers passing `<SkullIcon />` as a child; the hero CTA uses
+  `<Button skull>`
+- **SkullIcon redrawn to be menacing** — angular cracked cranium, eye
+  sockets slanted inward like a glare, jagged nasal cavity, gapped teeth,
+  hairline crack down the dome (same 24×24 currentColor API)
+- `--accent-bright` darkened `#d9a45b` → `#c99044` (button hover read too
+  light)
+
 ## Phase 1 fine-tune — detailed moon & dying gate lights — 2026-07-04
 
 ### Changed

@@ -1,4 +1,5 @@
 import {
+  CANDLES,
   GATE_LEFT,
   GATE_RIGHT,
   GROUND_Y,
@@ -38,9 +39,17 @@ export function ForegroundLayer() {
       />
 
       <Tombstones />
+      <CelticCross />
+      <WeepingAngel />
       <SkeletalHand />
       <Mummy />
+      <GroundClutter />
+      <Candles />
       <Fence />
+      <LampPost />
+      <GnarledTree />
+      <GnarledTree mirrored />
+      <Crow />
     </svg>
   );
 }
@@ -109,6 +118,92 @@ function Mummy() {
   );
 }
 
+// Ringed headstone standing in the open ground before the gate.
+function CelticCross() {
+  return (
+    <g className="fill-foreground/12">
+      <rect x={528} y={646} width={34} height={14} />
+      <rect x={541} y={568} width={8} height={80} />
+      <rect x={523} y={588} width={44} height={8} />
+      <path
+        fillRule="evenodd"
+        d="M545 574 a18 18 0 1 0 0 36 a18 18 0 1 0 0 -36 Zm0 6 a12 12 0 1 1 0 24 a12 12 0 1 1 0 -24 Z"
+      />
+    </g>
+  );
+}
+
+// Hunched statue weeping over a grave, one wing folded across its back —
+// slightly paler than the stones so it reads as marble, not rock.
+function WeepingAngel() {
+  return (
+    <g className="fill-foreground/12">
+      <rect x={348} y={648} width={52} height={12} />
+      {/* body bowed forward, head sunk into hands */}
+      <path d="M360 648 C 357 620 363 600 377 590 C 383 585 387 578 389 570 C 391 562 397 558 402 560 C 406 562 407 568 405 574 C 403 580 399 586 397 592 C 403 602 407 622 405 648 Z" />
+      {/* folded wing arcing over the back */}
+      <path d="M364 648 C 350 612 354 578 376 556 C 365 586 367 616 375 648 Z" />
+    </g>
+  );
+}
+
+// Broken slabs and dry grass roughing up the ground line.
+function GroundClutter() {
+  return (
+    <g>
+      <g className="fill-foreground/8">
+        <polygon points="255,660 262,646 274,650 280,660" />
+        <polygon points="610,658 618,644 626,658" />
+        <polygon points="884,660 890,650 902,653 906,660" />
+        <polygon points="1240,659 1247,647 1257,651 1262,659" />
+      </g>
+      <g className="fill-foreground/10">
+        <path d="M330 660 l3 -12 2 12 3 -9 2 9 Z" />
+        <path d="M586 660 l3 -10 2 10 3 -8 2 8 Z" />
+        <path d="M822 660 l3 -11 2 11 3 -8 2 8 Z" />
+        <path d="M1010 659 l3 -12 2 12 3 -9 2 9 Z" />
+        <path d="M1198 660 l3 -10 2 10 3 -8 2 8 Z" />
+      </g>
+    </g>
+  );
+}
+
+// Candles guttering at the grave bases, like the reference image —
+// each flame on its own flicker timing.
+function Candles() {
+  return (
+    <g>
+      {CANDLES.map((candle) => (
+        <g key={candle.x}>
+          <rect
+            x={candle.x - 2.5}
+            y={GROUND_Y - candle.h}
+            width={5}
+            height={candle.h}
+            className="fill-foreground/30"
+          />
+          <g className={candle.flickerClass}>
+            <circle
+              cx={candle.x}
+              cy={GROUND_Y - candle.h - 4}
+              r={7}
+              filter="url(#fg-blur)"
+              className="fill-accent/40"
+            />
+            <ellipse
+              cx={candle.x}
+              cy={GROUND_Y - candle.h - 4}
+              rx={1.6}
+              ry={3.2}
+              className="fill-accent-bright"
+            />
+          </g>
+        </g>
+      ))}
+    </g>
+  );
+}
+
 function Fence() {
   return (
     <g className="fill-surface">
@@ -150,6 +245,72 @@ function GatePillar({ x, flickerClass }: { x: number; flickerClass: string }) {
         />
         <circle cx={x} cy={504} r={8} className="fill-accent" />
       </g>
+    </g>
+  );
+}
+
+// Iron lamp post just inside the gate, lighting the path — its bulb fails
+// on the same rhythm as the gate lanterns.
+function LampPost() {
+  return (
+    <g>
+      <rect x={857} y={494} width={6} height={GROUND_Y - 494} className="fill-surface" />
+      <rect x={851} y={GROUND_Y - 6} width={18} height={6} className="fill-surface" />
+      <rect x={850} y={468} width={20} height={5} className="fill-surface" />
+      <g className="lantern-flicker">
+        <circle
+          cx={860}
+          cy={484}
+          r={14}
+          filter="url(#fg-blur)"
+          className="fill-accent/50"
+        />
+        <circle cx={860} cy={484} r={5} className="fill-accent" />
+      </g>
+      {/* lantern cage over the light */}
+      <g className="fill-surface">
+        <rect x={851} y={473} width={2.5} height={22} />
+        <rect x={866.5} y={473} width={2.5} height={22} />
+        <rect x={851} y={493} width={18} height={3} />
+      </g>
+    </g>
+  );
+}
+
+// Bare, twisted tree framing the scene edge, branches clawing over the
+// fence. Mirrored copy stands at the opposite edge.
+function GnarledTree({ mirrored = false }: { mirrored?: boolean }) {
+  return (
+    <g
+      className="fill-surface"
+      transform={mirrored ? "translate(1440 0) scale(-1 1)" : undefined}
+    >
+      {/* trunk */}
+      <path d="M42 730 C 56 620 44 560 66 470 C 74 430 68 380 76 330 C 80 300 74 270 80 240 L 96 244 C 90 276 98 304 92 336 C 86 388 94 432 84 474 C 68 562 84 622 74 730 Z" />
+      {/* low branch reaching over the fence */}
+      <path d="M68 472 C 110 440 160 436 210 420 C 240 410 268 386 286 362 L 280 356 C 258 378 234 398 206 408 C 158 424 108 430 64 458 Z" />
+      {/* mid branch */}
+      <path d="M78 382 C 112 366 138 344 168 330 L 196 312 L 192 306 L 164 322 C 134 336 108 358 74 370 Z" />
+      {/* short branch toward the edge */}
+      <path d="M72 422 C 48 406 28 404 8 392 L 0 388 L 0 398 L 6 400 C 24 410 44 414 66 432 Z" />
+      {/* twigs */}
+      <path d="M208 420 C 224 414 234 400 250 396 L 248 390 C 232 394 220 410 204 414 Z" />
+      <path d="M168 330 C 178 318 192 314 200 302 L 195 298 C 186 308 172 316 162 324 Z" />
+      <path d="M88 246 C 96 232 110 226 118 214 L 113 210 C 104 222 92 228 82 242 Z" />
+    </g>
+  );
+}
+
+// Something is watching from the low branch of the right-hand tree.
+function Crow() {
+  return (
+    <g transform="translate(1236 400)">
+      <path
+        d="M0 14 Q 2 4 10 2 Q 14 -6 20 -6 Q 18 -2 19 1 L 26 3 L 19 5 Q 19 11 12 14 L 16 20 L 9 16 L 0 17 Z"
+        className="fill-surface"
+      />
+      {/* a pinprick of amber where an eye should be */}
+      <circle cx={16} cy={0} r={1} className="fill-accent-bright" />
     </g>
   );
 }

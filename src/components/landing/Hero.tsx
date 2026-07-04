@@ -1,4 +1,3 @@
-import { SkullIcon } from "@/components/icons/SkullIcon";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { ParallaxScene } from "./ParallaxScene";
@@ -24,8 +23,7 @@ export function Hero() {
           journey is better with company.
         </p>
         <div className="mt-4 flex flex-col gap-4 sm:flex-row">
-          <Button href="#journey" size="lg">
-            <SkullIcon />
+          <Button href="#journey" size="lg" skull>
             Enter the graveyard
           </Button>
           <Button href="#journey" variant="outline" size="lg">

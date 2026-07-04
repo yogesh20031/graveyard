@@ -43,6 +43,13 @@ scope grew on Yogesh's feedback:
   his reference photo) and gate lanterns turned into horror-movie dying
   bulbs: dim burnt amber, abrupt out-of-sync flicker with a near-death
   dip, static dim fallback under reduced motion
+- **Fine-tune 2 (Yogesh feedback + reference image):** skull on `Button`
+  is now a `skull` prop (conditional, not a hardcoded child) and the icon
+  was redrawn menacing; `--accent-bright` darkened to `#c99044`; scene
+  filled out like his reference — mausoleum, distant stones, dead tree
+  (hills), gnarled framing trees, celtic cross, weeping angel, guttering
+  grave candles, lamp post, crow, ground clutter (foreground).
+  **Left uncommitted on request — Yogesh reviews and commits himself.**
 
 ### Left to do (see [ROADMAP.md](./ROADMAP.md))
 

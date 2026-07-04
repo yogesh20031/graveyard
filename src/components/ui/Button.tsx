@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
+import { SkullIcon } from "@/components/icons/SkullIcon";
 import { cn } from "@/lib/cn";
 
 type ButtonVariant = "solid" | "outline" | "ghost";
@@ -8,6 +9,8 @@ type ButtonSize = "md" | "lg";
 type CommonProps = {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  /** show the skull before the label — for CTAs that lead into the graveyard */
+  skull?: boolean;
 };
 
 // Discriminated on `href`: present → <Link>, absent → <button>.
@@ -36,7 +39,9 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 export function Button({
   variant = "solid",
   size = "md",
+  skull = false,
   className,
+  children,
   ...props
 }: ButtonProps) {
   const classes = cn(
@@ -46,9 +51,24 @@ export function Button({
     className,
   );
 
+  const content = (
+    <>
+      {skull && <SkullIcon />}
+      {children}
+    </>
+  );
+
   if (props.href !== undefined) {
-    return <Link {...props} className={classes} />;
+    return (
+      <Link {...props} className={classes}>
+        {content}
+      </Link>
+    );
   }
 
-  return <button {...props} className={classes} />;
+  return (
+    <button {...props} className={classes}>
+      {content}
+    </button>
+  );
 }

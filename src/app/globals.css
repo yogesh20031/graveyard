@@ -14,7 +14,7 @@
   --surface: #060810; /* darker night — ground, silhouettes, panels */
   --foreground: #e8e2d3; /* pale bone / moonlight */
   --accent: #b8823a; /* burnt lantern amber */
-  --accent-bright: #d9a45b; /* lit-up amber for hover states */
+  --accent-bright: #c99044; /* lit-up amber for hover states */
 }
 
 @theme inline {
@@ -153,6 +153,20 @@ body {
   animation: lantern-flicker 8.5s linear -3.2s infinite;
 }
 
+/* Grave candles gutter faster than the lanterns — same failing-light
+ * keyframes, shorter cycles, staggered so no two flames move together. */
+.candle-flicker {
+  animation: lantern-flicker 3.8s linear infinite;
+}
+
+.candle-flicker-offset {
+  animation: lantern-flicker 4.7s linear -1.9s infinite;
+}
+
+.candle-flicker-slow {
+  animation: lantern-flicker 5.6s linear -3.4s infinite;
+}
+
 @keyframes cue-bounce {
   0%,
   100% {
@@ -175,13 +189,19 @@ body {
   .lantern-glow,
   .lantern-flicker,
   .lantern-flicker-offset,
+  .candle-flicker,
+  .candle-flicker-offset,
+  .candle-flicker-slow,
   .scroll-cue {
     animation: none;
   }
 
   /* keep the failing-bulb look without the flicker */
   .lantern-flicker,
-  .lantern-flicker-offset {
+  .lantern-flicker-offset,
+  .candle-flicker,
+  .candle-flicker-offset,
+  .candle-flicker-slow {
     opacity: 0.4;
   }
 }

@@ -25,7 +25,7 @@ no component re-renders with new props, no styled-components, no context.
 | `--surface`       | `bg-surface`, `fill-surface`           | `#060810`       | darker night — ground, silhouettes, panels |
 | `--foreground`    | `text-foreground`, `fill-foreground`   | `#e8e2d3`       | pale bone / moonlight text              |
 | `--accent`        | `text-accent`, `bg-accent`             | `#b8823a`       | burnt lantern amber — CTAs, highlights  |
-| `--accent-bright` | `bg-accent-bright`, `text-accent-bright` | `#d9a45b`     | lit-up amber — hovers, lantern flames, glowing eyes |
+| `--accent-bright` | `bg-accent-bright`, `text-accent-bright` | `#c99044`     | lit-up amber — hovers, candle flames, glowing eyes |
 
 Shades come from opacity modifiers (`text-foreground/60`,
 `fill-foreground/10`), so the palette stays at 2–3 real colors.

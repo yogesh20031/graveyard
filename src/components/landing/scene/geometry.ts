@@ -47,6 +47,34 @@ export const TOMBSTONES: Tombstone[] = [
 
 export const GROUND_Y = 660;
 
+// Small stones scattered along the hill crest — the graveyard keeps going
+// deeper than the fence. baseY follows the hill curve in HillsLayer.
+export type DistantStone = Tombstone & { baseY: number; cross?: boolean };
+
+export const DISTANT_STONES: DistantStone[] = [
+  { x: 356, width: 26, height: 34, baseY: 545, fillClass: "fill-surface/80" },
+  { x: 424, width: 18, height: 30, baseY: 548, fillClass: "fill-surface/90", cross: true },
+  { x: 498, width: 30, height: 38, baseY: 550, fillClass: "fill-surface/80" },
+  { x: 566, width: 22, height: 28, baseY: 548, fillClass: "fill-surface/90" },
+  { x: 872, width: 22, height: 34, baseY: 541, fillClass: "fill-surface/90", cross: true },
+  { x: 946, width: 30, height: 40, baseY: 540, fillClass: "fill-surface/80" },
+  { x: 1052, width: 20, height: 26, baseY: 543, fillClass: "fill-surface/90" },
+  { x: 1216, width: 26, height: 32, baseY: 550, fillClass: "fill-surface/80" },
+];
+
+// Grave candles guttering at the stone bases; staggered flicker classes so
+// no two flames move together.
+export type Candle = { x: number; h: number; flickerClass: string };
+
+export const CANDLES: Candle[] = [
+  { x: 142, h: 9, flickerClass: "candle-flicker" },
+  { x: 302, h: 7, flickerClass: "candle-flicker-offset" },
+  { x: 490, h: 10, flickerClass: "candle-flicker-slow" },
+  { x: 932, h: 8, flickerClass: "candle-flicker-offset" },
+  { x: 1058, h: 9, flickerClass: "candle-flicker" },
+  { x: 1240, h: 7, flickerClass: "candle-flicker-slow" },
+];
+
 // Gate opening sits between the pillars; the fence skips this span.
 export const GATE_LEFT = 640;
 export const GATE_RIGHT = 800;
@@ -55,7 +83,7 @@ export const PICKET_XS = Array.from({ length: 30 }, (_, i) => 24 + i * 48).filte
   (x) => x < GATE_LEFT || x > GATE_RIGHT,
 );
 
-export function tombstonePath({ x, width, height }: Tombstone) {
+export function tombstonePath({ x, width, height }: Tombstone, baseY = GROUND_Y) {
   const r = width / 2;
-  return `M ${x} ${GROUND_Y} v ${-(height - r)} a ${r} ${r} 0 0 1 ${width} 0 v ${height - r} z`;
+  return `M ${x} ${baseY} v ${-(height - r)} a ${r} ${r} 0 0 1 ${width} 0 v ${height - r} z`;
 }
