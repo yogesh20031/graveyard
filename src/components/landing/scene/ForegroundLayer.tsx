@@ -126,26 +126,30 @@ function Fence() {
       <rect x={0} y={636} width={GATE_LEFT - 18} height={5} />
       <rect x={GATE_RIGHT + 18} y={636} width={1440 - GATE_RIGHT - 18} height={5} />
 
-      <GatePillar x={GATE_LEFT - 18} />
-      <GatePillar x={GATE_RIGHT + 18} />
+      {/* different flicker timings so the bulbs fail independently */}
+      <GatePillar x={GATE_LEFT - 18} flickerClass="lantern-flicker" />
+      <GatePillar x={GATE_RIGHT + 18} flickerClass="lantern-flicker-offset" />
     </g>
   );
 }
 
-function GatePillar({ x }: { x: number }) {
+function GatePillar({ x, flickerClass }: { x: number; flickerClass: string }) {
   return (
     <g>
       <rect x={x - 18} y={530} width={36} height={130} className="fill-surface" />
       <rect x={x - 24} y={522} width={48} height={12} className="fill-surface" />
-      {/* lantern */}
-      <circle
-        cx={x}
-        cy={504}
-        r={20}
-        filter="url(#fg-blur)"
-        className="lantern-glow fill-accent-bright/60"
-      />
-      <circle cx={x} cy={504} r={8} className="fill-accent-bright" />
+      {/* dying lantern — burnt amber, never full brightness; the flicker's
+          brief peaks are its only "bright" moments */}
+      <g className={flickerClass}>
+        <circle
+          cx={x}
+          cy={504}
+          r={20}
+          filter="url(#fg-blur)"
+          className="fill-accent/50"
+        />
+        <circle cx={x} cy={504} r={8} className="fill-accent" />
+      </g>
     </g>
   );
 }

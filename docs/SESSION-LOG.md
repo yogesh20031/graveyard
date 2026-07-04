@@ -38,6 +38,11 @@ scope grew on Yogesh's feedback:
 - Verified: `pnpm build` and `pnpm lint` pass; rendered HTML checked
   against the running dev server
 - All work committed in four logical commits (`005008a`…`98bc129`)
+- **Fine-tune (later same day, Yogesh feedback):** moon rebuilt with real
+  detail (maria, cratered surface, rayed Tycho crater, rim shading — per
+  his reference photo) and gate lanterns turned into horror-movie dying
+  bulbs: dim burnt amber, abrupt out-of-sync flicker with a near-death
+  dip, static dim fallback under reduced motion
 
 ### Left to do (see [ROADMAP.md](./ROADMAP.md))
 

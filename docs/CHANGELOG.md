@@ -3,6 +3,23 @@
 All notable changes, grouped by phase. See [ROADMAP.md](./ROADMAP.md) for
 what each phase covers.
 
+## Phase 1 fine-tune — detailed moon & dying gate lights — 2026-07-04
+
+### Changed
+
+- **Moon** (`SkyLayer.tsx`) — rebuilt from a flat disc into a textured full
+  moon matching Yogesh's reference photo: blurred dark maria patches, ~11
+  craters with sunlit rims and shadowed bowls, a bright Tycho-style rayed
+  crater near the bottom, and clipped rim shading so the disc reads as a
+  sphere. Still monochrome bone-on-night, tokens only.
+- **Gate lanterns** (`globals.css`, `ForegroundLayer.tsx`) — replaced the
+  healthy 5s pulse with a horror-movie `lantern-flicker`: dim base
+  (burnt `--accent` instead of `accent-bright`), abrupt stutters, one
+  near-death dip per cycle, and a capped ~0.6 ceiling so the light never
+  feels safe. The two bulbs run different durations with a negative delay
+  so they fail independently. Under `prefers-reduced-motion` they hold a
+  static dim glow. The mummy's eyes keep the slow organic pulse.
+
 ## Phase 1 update — scroll journey & scary touches — 2026-07-04
 
 ### Added

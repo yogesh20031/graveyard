@@ -101,6 +101,58 @@ body {
   animation: lantern-pulse 5s ease-in-out infinite;
 }
 
+/* Horror-movie gate lights: dim, stuttering, like a bulb about to die.
+ * Keyframe percents sit back-to-back so the jumps are instant, not eased,
+ * and the ceiling stays low (~0.6) — the light never gets healthy.
+ * Long calm stretches between stutters keep it eerie rather than strobing. */
+@keyframes lantern-flicker {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  3% {
+    opacity: 0.15;
+  }
+  4% {
+    opacity: 0.5;
+  }
+  9% {
+    opacity: 0.2;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  38% {
+    opacity: 0.5;
+  }
+  /* the near-death dip */
+  41% {
+    opacity: 0.08;
+  }
+  45% {
+    opacity: 0.12;
+  }
+  47% {
+    opacity: 0.55;
+  }
+  72% {
+    opacity: 0.25;
+  }
+  73% {
+    opacity: 0.5;
+  }
+}
+
+.lantern-flicker {
+  animation: lantern-flicker 7s linear infinite;
+}
+
+/* different duration + negative delay so the two gate lanterns never blink
+ * in sync — two independently failing bulbs */
+.lantern-flicker-offset {
+  animation: lantern-flicker 8.5s linear -3.2s infinite;
+}
+
 @keyframes cue-bounce {
   0%,
   100% {
@@ -121,7 +173,15 @@ body {
   .star,
   .star-slow,
   .lantern-glow,
+  .lantern-flicker,
+  .lantern-flicker-offset,
   .scroll-cue {
     animation: none;
+  }
+
+  /* keep the failing-bulb look without the flicker */
+  .lantern-flicker,
+  .lantern-flicker-offset {
+    opacity: 0.4;
   }
 }
