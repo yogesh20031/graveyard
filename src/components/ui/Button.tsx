@@ -59,6 +59,30 @@ export function Button({
   );
 
   if (props.href !== undefined) {
+    // Same-page anchors skip the Next router: Link re-appends the hash when
+    // one is already in the URL (#about#about), and Lenis (anchors: true)
+    // already owns the smooth scroll. Strip the Link-only props for <a>.
+    if (typeof props.href === "string" && props.href.startsWith("#")) {
+      const {
+        href,
+        as,
+        replace,
+        scroll,
+        shallow,
+        passHref,
+        prefetch,
+        locale,
+        legacyBehavior,
+        onNavigate,
+        ...anchorProps
+      } = props;
+      return (
+        <a href={href} {...anchorProps} className={classes}>
+          {content}
+        </a>
+      );
+    }
+
     return (
       <Link {...props} className={classes}>
         {content}
