@@ -69,6 +69,41 @@ body {
   animation: fog-drift 45s ease-in-out infinite reverse;
 }
 
+/* Fog puffs: HTML divs (not SVG) so blur + drift stay compositor-only.
+ * Sizes/positions are scene geometry, kept here with the other helpers. */
+.fog-puff {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--foreground), transparent 86%),
+    transparent
+  );
+  filter: blur(28px);
+  will-change: transform;
+}
+
+.fog-puff-a {
+  left: -10%;
+  bottom: 6%;
+  width: 55%;
+  height: 8rem;
+}
+
+.fog-puff-b {
+  left: 30%;
+  bottom: 2%;
+  width: 65%;
+  height: 10rem;
+}
+
+.fog-puff-c {
+  right: -8%;
+  bottom: 8%;
+  width: 45%;
+  height: 7rem;
+}
+
 @keyframes twinkle {
   0%,
   100% {
@@ -143,6 +178,14 @@ body {
   }
 }
 
+.lantern-flicker,
+.lantern-flicker-offset,
+.candle-flicker,
+.candle-flicker-offset,
+.candle-flicker-slow {
+  will-change: opacity;
+}
+
 .lantern-flicker {
   animation: lantern-flicker 7s linear infinite;
 }
@@ -165,6 +208,51 @@ body {
 
 .candle-flicker-slow {
   animation: lantern-flicker 5.6s linear -3.4s infinite;
+}
+
+/* The fog you walk into at the end of the gate approach — dark night fog,
+ * light enough to read as fog but never a pale blank screen. */
+.fog-wall {
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--background), var(--foreground) 10%) 0%,
+    color-mix(in oklab, var(--background), var(--foreground) 6%) 100%
+  );
+}
+
+/* …and the same fog thinning out at the top of the next section, so the
+ * hand-off from the hero feels like one continuous walk. */
+.fog-fade {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--background), var(--foreground) 7%) 0%,
+    transparent 100%
+  );
+}
+
+/* Something in the dark blinks, rarely and never in unison. */
+@keyframes eye-blink {
+  0%,
+  90%,
+  100% {
+    transform: scaleY(1);
+  }
+  93%,
+  96% {
+    transform: scaleY(0.08);
+  }
+}
+
+.watching-eye {
+  animation: eye-blink 6s linear infinite;
+}
+
+.watching-eye-delayed {
+  animation: eye-blink 7.5s linear -2.8s infinite;
+}
+
+.watching-eye-slow {
+  animation: eye-blink 9s linear -5.5s infinite;
 }
 
 @keyframes cue-bounce {
@@ -192,6 +280,9 @@ body {
   .candle-flicker,
   .candle-flicker-offset,
   .candle-flicker-slow,
+  .watching-eye,
+  .watching-eye-delayed,
+  .watching-eye-slow,
   .scroll-cue {
     animation: none;
   }
