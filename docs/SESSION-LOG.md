@@ -50,6 +50,43 @@ scope grew on Yogesh's feedback:
   (hills), gnarled framing trees, celtic cross, weeping angel, guttering
   grave candles, lamp post, crow, ground clutter (foreground).
   **Left uncommitted on request — Yogesh reviews and commits himself.**
+- **Phase 2 started:** hero rebuilt as a pinned 250vh walk-through-the-gate
+  (foreground zooms past the viewport, copy falls away, fog wall closes
+  over, you emerge inside); new `components/journey/` folder with the
+  **About the Keeper** section — skeleton keeper against his headstone,
+  mummy, blinking watching eyes, grass/half-buried-bones floor strip, bio
+  copy drawn from `PROMPTS.md` (tools + buried passions as stone chips).
+  Journey preview trimmed to the two remaining stops.
+  **Also uncommitted — Yogesh reviews the gate walk first.**
+- **Phase 2 fixes (Yogesh feedback):** `#about#about` URL bug fixed (hash
+  hrefs bypass Next Link); About rebuilt to live *inside* the graveyard —
+  same sky/moon overhead, fog at the ground, bio carved on a monument
+  slab, tools/passions as mini headstones planted in the floor strip;
+  animation perf pass (fog → GPU-composited divs, all flame glows →
+  gradient fills instead of blur filters). Still uncommitted.
+- **About rework 2 (Yogesh: "same animation as landing / UI still feels
+  like a site"):** interim `AboutScene` drift parallax + `AboutBackdrop`
+  (grave rows, edge trees, continuing path, mummy, hand) + stone-styled
+  monument and crooked headstone chips.
+- **About rework 3 (Yogesh: "should feel like walking, first-person like
+  human eyes"):** replaced the drift with `AboutWalk` — the section pins
+  for a 400vh walk exactly like the hero: `AboutForeground` puts the path
+  under your feet and huge half-cropped graves beside you (scaling 2.2×
+  past), and the info arrives as four **stations** that rise out of the
+  fog when you reach them (arrival → monument + keeper → tools stones →
+  passions stones), each planted in the ground via the new `StoneBase`
+  strip. `AboutScene` deleted. Still uncommitted — key lesson: sections
+  must be composed first-person (path underfoot, near things cropped by
+  the frame) or they read as "website", no matter how themed the widgets
+  are.
+- **About detail pass (Yogesh: "road looks like a light ray / white
+  screen between sections"):** root cause of the light-ray road — the
+  scene had no dark ground mass; pale shapes only read as dirt/stone when
+  cut into `fill-surface` ground (that's why the landing works). Added
+  the ground plane + textured road (ruts, cobbles), grave rows, fallen
+  slab, fence fragment, shrub; backdrop reduced to horizon silhouettes.
+  White-screen fix: fog wall darkened (10% bone mix, was 24%) and capped
+  at 0.97 so silhouettes ghost through the section hand-off.
 
 ### Left to do (see [ROADMAP.md](./ROADMAP.md))
 
@@ -73,6 +110,23 @@ scope grew on Yogesh's feedback:
 | Claude-in-Chrome extension not connected | **Worked around** | Verified via production build + fetching rendered HTML from the dev server instead of visual browser checks. Visual QA still owed. |
 | Original vibe reference image no longer in cache | **Worked around** | Palette chosen without it; lantern-amber direction approved by Yogesh via question. |
 | Port 3000 already taken | **Non-issue** | It's Yogesh's own dev server for this repo; it hot-reloads the changes. |
+| URL became `/#about#about` after clicking CTAs | **Solved** | Hash-only hrefs went through Next `Link`, whose router re-appends the hash when one is already present (Lenis `anchors: true` handles the scroll separately). `Button` now renders plain `<a>` for same-page anchors — the router should never see hash-only links. |
+| Scene animations getting heavy | **Solved** | CSS loops were animating over SVG `feGaussianBlur` (fog ellipses, every flame glow), re-rasterizing filters per frame. Fog is now blurred HTML divs (compositor-only transforms); glows are `radialGradient` fills (no filter at all). |
+| "Gate shifted left" report | **Solved** (perception, not geometry) | Headless-Chrome screenshots (`chrome --headless --screenshot`, works without the extension) proved the gate was still dead center — but invisible (dark pillars, dimmed lanterns, buttons on top) while the mausoleum's bright doorway on the left read as "the gate". Added an iron arch + apex lantern over the real gate, moonlit pillar faces, dimmed the mausoleum ember. Lesson: check what the eye latches onto, not just coordinates — and headless Chrome is the fallback for visual QA. |
+
+### Phase 2 completed (same day)
+
+- Journey finished end-to-end with one shared `JourneyWalk` (consistent
+  scene + mechanics across About / Trials & Experience / Lessons
+  Unearthed), shared `StoneSlab`/`HeadstoneRow` stone pieces, epilogue
+  with mailto + GitHub, footer on the graveyard floor, `JourneyPreview`
+  removed. **Yogesh must edit the placeholder `TRIALS` array in
+  `TrialsExperience.tsx` with real projects/work.**
+- Verification gotcha: headless-Chrome screenshots of fragment-scrolled
+  positions (`/#about` etc.) rasterize as blank even though `--dump-dom`
+  proves the DOM/styles are correct — pinned-sticky content at scrolled
+  offsets doesn't paint in headless captures. Verify deep sections via
+  DOM dumps or live browser, not headless pixels.
 
 ### Unsolved / action needed
 

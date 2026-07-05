@@ -3,6 +3,150 @@
 All notable changes, grouped by phase. See [ROADMAP.md](./ROADMAP.md) for
 what each phase covers.
 
+## Phase 2 complete — the whole journey walks — 2026-07-04
+
+### Added
+
+- **Trials & Experience** (`#experience`) — second stop: one monument
+  grave per project/job from the `TRIALS` array (**placeholder content —
+  edit the array in `TrialsExperience.tsx`**), each with period, story,
+  and tools carved on a `StoneSlab`
+- **Lessons Unearthed** (`#lessons`) — third stop: skills as two
+  `HeadstoneRow`s ("Dug up" / "Still digging") and an **epilogue**: "The
+  end of the path — for now" with Leave a message (mailto) and Visit the
+  crypt (GitHub) buttons, plus the music-player tease
+- Shared journey pieces: `JourneyWalk` (renamed from `AboutWalk`; track
+  height follows station count; only the station you're standing at takes
+  pointer events, so the epilogue buttons are clickable), `StoneSlab`,
+  `HeadstoneRow`
+
+### Changed
+
+- `page.tsx`: Hero → About → Trials → Lessons → footer; the footer now
+  stands on the `GraveyardFloor` strip ("You walked the whole path…")
+- About's last station chains forward ("The trials lie just ahead")
+
+### Removed
+
+- `JourneyPreview.tsx` — the plain teaser cards broke the journey's
+  illusion and all three stops are real now
+
+## Landing fix — the gate reads centered again — 2026-07-04
+
+### Fixed
+
+- **"The gate shifted left"** — it hadn't (screenshot-verified: pillars
+  flank the exact viewport center at every width). It had become
+  *invisible*: near-black pillars on a near-black fence, lanterns dimmed
+  by the horror flicker, CTA buttons sitting on top — while the
+  mausoleum's bright pulsing doorway on the left hill was the only lit,
+  entrance-shaped thing on screen, so the eye adopted it as "the gate."
+  Fix: a **wrought-iron arch now spans the gate with a lantern hanging at
+  its apex** (dead center, gentle pulse), the pillar faces catch faint
+  moonlight, and the mausoleum door was dimmed to a static ember.
+
+## Phase 2 detail pass — real ground, dirt road, darker fog — 2026-07-04
+
+### Changed
+
+- **The About scene got its ground.** `AboutForeground` now draws a dark
+  `fill-surface` ground mass from a wavy horizon down — the same move that
+  makes the landing work. The road is cut *into* it: pale trodden dirt
+  with wheel ruts, half-sunk cobbles shrinking toward the horizon. Around
+  it: two grave rows flanking the road (tilted stones, a cross, a slab
+  fallen face-down), a mostly-collapsed iron fence fragment, a dead
+  shrub, the skeletal hand at the road's edge, grass fringing the bottom.
+  The huge flanking stones gained epitaph lines and a crack.
+- `AboutBackdrop` reduced to horizon silhouettes (dark stone/cross rows
+  against the sky, edge trees, the mummy re-based to stand among the
+  horizon stones); `GraveyardFloor` dropped from the walk — the ground
+  plane replaced it.
+- **No more pale blank screen between landing and About** — the fog wall
+  is now dark night fog (`--foreground` mix 24% → 10%) and caps at 0.97
+  opacity so the gate silhouettes keep ghosting through while the
+  sections hand off; `fog-fade` matched.
+
+## Phase 2 rework — About is a first-person walk — 2026-07-04
+
+### Added
+
+- **`AboutWalk`** (client) — the About section now uses the landing's
+  mechanics: it pins for a 400vh walk and scroll progress carries you down
+  the path. Four **stations** (arrival text → the keeper's monument +
+  skeleton → tools headstones → passions headstones) each rise out of the
+  fog as you approach and fall behind as you walk on; the last one stays
+  until the section releases. Reduced motion gets a simple static flow.
+- **`AboutForeground`** — the first-person feet-level layer: the path
+  running out from under you and huge flanking graves half-cropped by the
+  frame (scales 2.2× past you — same forward-motion cue as the landing
+  foreground); **`AboutBackdrop`** (grave rows, edge trees, mummy, hand)
+  sits behind it at mid-speed.
+- **`StoneBase`** — dirt mound + grass strip drawn over every planted
+  stone's bottom edge, so monuments and headstone rows grow out of the
+  ground instead of resting on the page.
+
+### Changed
+
+- Info styling stays stone (leaning monument slab, crooked tilted
+  headstone chips with tiny skulls), now planted via `StoneBase` and
+  bottom-anchored just above the ground strip; `GraveyardFloor` gained a
+  `bones` prop. `AboutScene` (the interim drift parallax) was removed —
+  superseded by `AboutWalk`.
+
+## Phase 2 fixes — About lives in the graveyard, smoother animation — 2026-07-04
+
+### Fixed
+
+- **URL turning into `/#about#about`** — hash-only hrefs in `Button` now
+  render a plain `<a>` instead of Next `Link`; the router was re-appending
+  the hash while Lenis handled the scroll. Same-page anchors never needed
+  the router.
+
+### Changed
+
+- **About the Keeper is now *inside* the graveyard, not a page about it**
+  — the section keeps the `night-sky` gradient, renders the same
+  `SkyLayer` (stars + detailed moon, pinned to the section top), and
+  drifting fog at the ground. The information is carved into the scene:
+  the bio is the inscription on a monument slab (arched stone panel,
+  skull marker), and tools/passions are rows of **mini headstones planted
+  in the ground strip**. The keeper skeleton sits on the same ground line.
+- **Animation performance pass:**
+  - `FogLayer` rebuilt as blurred HTML divs (radial-gradient `fog-puff`s)
+    animated with transforms — drift now runs on the GPU compositor
+    instead of re-rasterizing SVG `feGaussianBlur` every frame
+  - Every flame glow (gate lanterns, lamp post, all candles) swapped from
+    `feGaussianBlur` circles to `radialGradient` fills — zero filter cost
+    under the flicker animations; `will-change` hints added to the fog and
+    flicker classes
+- ESLint: `no-unused-vars` now ignores rest siblings (destructure-to-omit
+  pattern in `Button`)
+
+## Phase 2 (start) — through the gate & About the Keeper — 2026-07-04
+
+### Added
+
+- **About the Keeper section** (`src/components/journey/`, `#about`) — the
+  first stop *inside* the graveyard: `KeeperFigure` (a skeleton settled
+  against his headstone, mummy peeking from a second stone, guttering
+  candle, grass), `WatchingEyes` (amber pairs blinking on staggered
+  cycles in the section's dark edges), `GraveyardFloor` (grass strip with
+  a surfacing skull, femur, and rib arcs), and the story itself — epitaph
+  intro, bio, "keeper's tools" and "buried passions" carved-stone chips
+- CSS: `.fog-wall`, `.fog-fade` (token-derived fog gradients),
+  `eye-blink` keyframes + `watching-eye*` classes (reduced-motion safe)
+
+### Changed
+
+- **Scrolling the hero now walks you through the gate** — `ParallaxScene`
+  owns a 250vh pinned scroll track: the foreground scales to 2.6× so the
+  gate pillars sweep past the viewport edges, the hills approach, the
+  hero copy falls away behind you, and a fog wall closes over the screen
+  before the page deposits you at `#about`. Reduced motion keeps the old
+  single-viewport static hero.
+- Hero CTAs point at the real `#about` section; the journey preview now
+  shows only the two remaining stops ("The path goes deeper")
+
 ## Phase 1 fine-tune — creepier skull, darker hover, fuller scene — 2026-07-04
 
 ### Added

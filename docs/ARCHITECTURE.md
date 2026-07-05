@@ -19,14 +19,26 @@ src/
       SmoothScrollProvider.tsx  # Lenis smooth scrolling
     landing/            # components specific to the landing experience
       Hero.tsx
-      ParallaxScene.tsx # (client) scroll-linked depth for the scene layers
-      JourneyPreview.tsx
+      ParallaxScene.tsx # (client) pinned walk-through-the-gate scroll track
       scene/            # server-rendered SVG depth layers
         geometry.ts     # shared viewBox + coordinates
         SkyLayer.tsx
         HillsLayer.tsx
         ForegroundLayer.tsx
         FogLayer.tsx
+    journey/            # the stops inside the graveyard (Phase 2)
+      JourneyWalk.tsx   # (client) shared pinned walk; stations rise/fall
+      AboutKeeper.tsx   # stop 1 — the keeper's story
+      TrialsExperience.tsx # stop 2 — projects/work (edit TRIALS array)
+      LessonsUnearthed.tsx # stop 3 — skills + contact epilogue
+      AboutBackdrop.tsx # horizon silhouettes behind every stop
+      AboutForeground.tsx # feet-level ground, road, graves beside you
+      StoneSlab.tsx     # leaning monument with an inscription (shared)
+      HeadstoneRow.tsx  # crooked one-word headstone row (shared)
+      StoneBase.tsx     # dirt/grass strip that plants stones in the ground
+      KeeperFigure.tsx  # skeleton-keeper SVG vignette
+      GraveyardFloor.tsx# grass + bones strip (page footer ground)
+      WatchingEyes.tsx  # blinking amber eyes in the dark
   lib/
     cn.ts               # class-name join helper
   themes/
@@ -45,7 +57,10 @@ docs/                   # you are here
   subcomponents/helpers.
 - **`ui/` vs feature folders:** anything in `components/ui/` must be
   reusable and know nothing about the graveyard. Feature-specific pieces go
-  in a feature folder (`landing/`, later `journey/`, `music/`).
+  in a feature folder (`landing/`, `journey/`, later `music/`). The scene
+  layers in `landing/scene/` (sky, fog, geometry) double as the shared
+  scenery vocabulary — journey sections import them to stay in the same
+  world.
 - **Styling:** Tailwind classes only, referencing semantic theme tokens
   (`bg-background`, `text-accent`, `fill-surface`) — never raw hex values in
   components. Conditional classes via the `cn()` helper in `src/lib/cn.ts`.

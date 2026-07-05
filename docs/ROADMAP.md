@@ -18,13 +18,20 @@ deployable site and a dated entry in [CHANGELOG.md](./CHANGELOG.md).
 - Scary details: skull icon in CTAs/cards, skeletal hand, mummy with
   glowing eyes
 
-## Phase 2 — The journey
+## Phase 2 — The journey ✅ (2026-07-04)
 
-- Real sections behind the gate: **About the Keeper**, **Trials &
-  Experience**, **Lessons Unearthed**
-- Scroll-driven storytelling so moving down the page feels like walking
-  deeper into the graveyard — the motion stack (`motion` + `lenis`) is
-  already in place from Phase 1
+- ✅ **Walking through the gate**: the hero is a pinned scroll track — the
+  foreground zooms past the viewport edges, fog closes over, and you
+  emerge inside the graveyard (entering, not scrolling)
+- ✅ **About the Keeper** (`#about`): first-person walk — keeper monument
+  + skeleton, tools and passions as planted headstones
+- ✅ **Trials & Experience** (`#experience`): one grave per project/job
+  (content is placeholder — edit `TRIALS` in `TrialsExperience.tsx`)
+- ✅ **Lessons Unearthed** (`#lessons`): skills as headstone rows +
+  epilogue with contact (email / GitHub)
+- All three stops share `JourneyWalk` (same scene layers, same walking
+  mechanics) for a consistent journey; the footer stands on the
+  graveyard floor
 
 ## Phase 3 — The music
 
