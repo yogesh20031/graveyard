@@ -21,9 +21,13 @@ export function ForegroundLayer() {
       className="h-full w-full"
     >
       <defs>
-        <filter id="fg-blur" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="8" />
-        </filter>
+        {/* soft-glow falloff for every flame — a gradient fill costs nothing
+            per frame, unlike a blur filter under an opacity animation */}
+        <radialGradient id="glow-warm">
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.55} />
+          <stop offset="55%" stopColor="var(--accent)" stopOpacity={0.18} />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+        </radialGradient>
       </defs>
 
       {/* ground */}
@@ -186,9 +190,8 @@ function Candles() {
             <circle
               cx={candle.x}
               cy={GROUND_Y - candle.h - 4}
-              r={7}
-              filter="url(#fg-blur)"
-              className="fill-accent/40"
+              r={12}
+              fill="url(#glow-warm)"
             />
             <ellipse
               cx={candle.x}
@@ -224,6 +227,26 @@ function Fence() {
       {/* different flicker timings so the bulbs fail independently */}
       <GatePillar x={GATE_LEFT - 18} flickerClass="lantern-flicker" />
       <GatePillar x={GATE_RIGHT + 18} flickerClass="lantern-flicker-offset" />
+      <GateArch />
+    </g>
+  );
+}
+
+// Wrought-iron arch spanning the opening, one lantern hanging dead center —
+// the unmissable "this is the way in" marker.
+function GateArch() {
+  return (
+    <g>
+      <path
+        d="M604 522 A 116 116 0 0 1 836 522 L 824 522 A 104 104 0 0 0 616 522 Z"
+        className="fill-foreground/12"
+      />
+      {/* hanging lantern at the apex */}
+      <rect x={718.5} y={416} width={3} height={12} className="fill-foreground/12" />
+      <g className="lantern-glow">
+        <circle cx={720} cy={436} r={18} fill="url(#glow-warm)" />
+        <circle cx={720} cy={436} r={6} className="fill-accent" />
+      </g>
     </g>
   );
 }
@@ -233,16 +256,13 @@ function GatePillar({ x, flickerClass }: { x: number; flickerClass: string }) {
     <g>
       <rect x={x - 18} y={530} width={36} height={130} className="fill-surface" />
       <rect x={x - 24} y={522} width={48} height={12} className="fill-surface" />
+      {/* moonlit face so the pillars read against the dark fence line */}
+      <rect x={x - 12} y={540} width={24} height={112} className="fill-foreground/8" />
+      <rect x={x - 24} y={522} width={48} height={5} className="fill-foreground/10" />
       {/* dying lantern — burnt amber, never full brightness; the flicker's
           brief peaks are its only "bright" moments */}
       <g className={flickerClass}>
-        <circle
-          cx={x}
-          cy={504}
-          r={20}
-          filter="url(#fg-blur)"
-          className="fill-accent/50"
-        />
+        <circle cx={x} cy={504} r={32} fill="url(#glow-warm)" />
         <circle cx={x} cy={504} r={8} className="fill-accent" />
       </g>
     </g>
@@ -258,13 +278,7 @@ function LampPost() {
       <rect x={851} y={GROUND_Y - 6} width={18} height={6} className="fill-surface" />
       <rect x={850} y={468} width={20} height={5} className="fill-surface" />
       <g className="lantern-flicker">
-        <circle
-          cx={860}
-          cy={484}
-          r={14}
-          filter="url(#fg-blur)"
-          className="fill-accent/50"
-        />
+        <circle cx={860} cy={484} r={22} fill="url(#glow-warm)" />
         <circle cx={860} cy={484} r={5} className="fill-accent" />
       </g>
       {/* lantern cage over the light */}

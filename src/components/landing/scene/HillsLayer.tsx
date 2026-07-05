@@ -42,10 +42,11 @@ function Mausoleum() {
         <polygon points="140,462 158,462 149,440" />
         <rect x={146} y={430} width={6} height={14} />
       </g>
-      {/* arched doorway, lit from within */}
+      {/* arched doorway — a faint ember inside, not a beacon; the gate's
+          arch lantern must stay the brightest landmark */}
       <path
         d="M191 548 v-38 a14 14 0 0 1 28 0 v38 Z"
-        className="lantern-glow fill-accent/25"
+        className="fill-accent/12"
       />
     </g>
   );
