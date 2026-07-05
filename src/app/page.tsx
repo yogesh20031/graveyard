@@ -1,20 +1,25 @@
+import { AboutKeeper } from "@/components/journey/AboutKeeper";
+import { GraveyardFloor } from "@/components/journey/GraveyardFloor";
+import { LessonsUnearthed } from "@/components/journey/LessonsUnearthed";
+import { TrialsExperience } from "@/components/journey/TrialsExperience";
 import { Hero } from "@/components/landing/Hero";
-import { JourneyPreview } from "@/components/landing/JourneyPreview";
-import { Reveal } from "@/components/ui/Reveal";
 
 export default function Home() {
   return (
     <>
       <main className="flex-1">
         <Hero />
-        <JourneyPreview />
+        <AboutKeeper />
+        <TrialsExperience />
+        <LessonsUnearthed />
       </main>
-      <Reveal y={12}>
-        <footer className="px-6 py-10 text-center text-sm text-foreground/40">
-          © 2026 Yogesh Khanal — rest here a while. The music player haunts a
+      <footer className="night-sky">
+        <GraveyardFloor />
+        <div className="px-6 py-10 bg-surface text-center text-sm text-foreground/40">
+          You walked the whole path. © 2026 Yogesh Khanal — the music haunts a
           later phase.
-        </footer>
-      </Reveal>
+        </div>
+      </footer>
     </>
   );
 }
