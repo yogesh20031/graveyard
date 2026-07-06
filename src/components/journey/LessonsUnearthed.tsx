@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/Button";
 import { HeadstoneRow } from "./HeadstoneRow";
-import { JourneyWalk } from "./JourneyWalk";
 import type { WalkStationConfig } from "./JourneyWalk";
 
 const DUG_UP = [
@@ -15,23 +14,13 @@ const DUG_UP = [
 
 const STILL_DIGGING = ["Animations & motion", "Accessibility", "Backend basics"];
 
-// Third stop: the knowledge — and the end of the path, where the visitor
-// can finally speak to the keeper.
-export function LessonsUnearthed() {
-  return (
-    <section
-      id="lessons"
-      className="relative scroll-mt-12 overflow-hidden night-sky"
-    >
-      <JourneyWalk stations={STATIONS} />
-    </section>
-  );
-}
-
-const STATIONS: WalkStationConfig[] = [
-  { key: "arrival", align: "center", node: <Arrival /> },
-  { key: "skills", align: "ground", node: <SkillsStation /> },
-  { key: "epilogue", align: "center", node: <Epilogue /> },
+// Right road from the crossroads: the knowledge. Its end returns you to the
+// crossroads; the keeper's farewell (Epilogue) waits at the true end, once
+// both roads are walked.
+export const lessonsStations: WalkStationConfig[] = [
+  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
+  { key: "skills", align: "ground", enter: "right", node: <SkillsStation /> },
+  { key: "closing", align: "center", enter: "road", node: <Closing /> },
 ];
 
 function Arrival() {
@@ -62,8 +51,17 @@ function SkillsStation() {
   );
 }
 
-// The gate out — or the door to the keeper.
-function Epilogue() {
+function Closing() {
+  return (
+    <p className="text-center font-display text-xs tracking-etched uppercase text-foreground/40">
+      The path winds on — the way out is near
+    </p>
+  );
+}
+
+// The gate out — or the door to the keeper. Rendered at the true end of the
+// walk (the `end` stage), once both roads from the crossroads are walked.
+export function Epilogue() {
   return (
     <div className="flex flex-col items-center gap-6 text-center">
       <h3 className="font-display text-3xl text-foreground sm:text-4xl">

@@ -1,5 +1,4 @@
-import { JourneyWalk } from "./JourneyWalk";
-import type { WalkStationConfig } from "./JourneyWalk";
+import type { WalkEnter, WalkStationConfig } from "./JourneyWalk";
 import { StoneBase } from "./StoneBase";
 import { StoneSlab } from "./StoneSlab";
 
@@ -30,27 +29,18 @@ const TRIALS: Trial[] = [
   },
 ];
 
-// Second stop: the works. One grave per project/job, each risen from the
-// TRIALS array above.
-export function TrialsExperience() {
-  return (
-    <section
-      id="experience"
-      className="relative scroll-mt-12 overflow-hidden night-sky"
-    >
-      <JourneyWalk stations={STATIONS} />
-    </section>
-  );
-}
-
-const STATIONS: WalkStationConfig[] = [
-  { key: "arrival", align: "center", node: <Arrival /> },
-  ...TRIALS.map((trial) => ({
+// Left road from the crossroads: the works. One grave per project/job, risen
+// from the TRIALS array above; its end returns you to the crossroads.
+export const trialsStations: WalkStationConfig[] = [
+  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
+  ...TRIALS.map((trial, index) => ({
     key: trial.title,
     align: "ground" as const,
+    // graves pass on alternating sides of the path
+    enter: (index % 2 === 0 ? "left" : "right") as WalkEnter,
     node: <TrialGrave trial={trial} />,
   })),
-  { key: "closing", align: "center", node: <Closing /> },
+  { key: "closing", align: "center", enter: "road", node: <Closing /> },
 ];
 
 function Arrival() {
@@ -92,7 +82,7 @@ function TrialGrave({ trial }: { trial: Trial }) {
 function Closing() {
   return (
     <p className="text-center font-display text-xs tracking-etched uppercase text-foreground/40">
-      The lessons lie further in — almost there
+      The path winds on — more graves ahead
     </p>
   );
 }

@@ -1,5 +1,4 @@
 import { HeadstoneRow } from "./HeadstoneRow";
-import { JourneyWalk } from "./JourneyWalk";
 import type { WalkStationConfig } from "./JourneyWalk";
 import { KeeperFigure } from "./KeeperFigure";
 import { StoneBase } from "./StoneBase";
@@ -15,29 +14,19 @@ const BURIED_PASSIONS = [
   "Sports",
 ];
 
-// First stop inside the gates, walked first-person like the landing: the
-// section pins, the path runs out from under your feet, and each piece of
-// the story is a grave you walk up to.
-export function AboutKeeper() {
-  return (
-    <section
-      id="about"
-      className="relative scroll-mt-12 overflow-hidden night-sky"
-    >
-      <JourneyWalk stations={STATIONS} />
-    </section>
-  );
-}
-
-const STATIONS: WalkStationConfig[] = [
-  { key: "arrival", align: "center", node: <Arrival /> },
-  { key: "monument", align: "ground", node: <MonumentStation /> },
+// First stop inside the gates: the arrival, the keeper's monument, and the
+// tools and passions he was buried with. Walked as the `about` stage; its end
+// leads to the crossroads.
+export const aboutStations: WalkStationConfig[] = [
+  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
+  { key: "monument", align: "ground", enter: "left", node: <MonumentStation /> },
   {
     key: "tools",
     align: "ground",
+    enter: "right",
     node: <HeadstoneRow title="The keeper's tools" items={KEEPER_TOOLS} />,
   },
-  { key: "passions", align: "ground", node: <PassionsStation /> },
+  { key: "passions", align: "ground", enter: "left", node: <PassionsStation /> },
 ];
 
 // You've just stepped through the fog. Text floats in the night, exactly
@@ -94,7 +83,7 @@ function PassionsStation() {
     <div className="flex flex-col items-center gap-6">
       <HeadstoneRow title="Buried passions" items={BURIED_PASSIONS} />
       <p className="font-display text-xs tracking-etched uppercase text-foreground/40">
-        The trials lie just ahead — keep to the path
+        The path forks just ahead — the crossroads await
       </p>
     </div>
   );

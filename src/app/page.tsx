@@ -1,25 +1,16 @@
-import { AboutKeeper } from "@/components/journey/AboutKeeper";
-import { GraveyardFloor } from "@/components/journey/GraveyardFloor";
-import { LessonsUnearthed } from "@/components/journey/LessonsUnearthed";
-import { TrialsExperience } from "@/components/journey/TrialsExperience";
+import { GraveyardJourney } from "@/components/journey/GraveyardJourney";
 import { Hero } from "@/components/landing/Hero";
 
 export default function Home() {
   return (
     <>
+      {/* Always-dark graveyard sky behind everything — no stage crossfade or
+          scroll-momentum overshoot can ever flash the page white. */}
+      <div aria-hidden className="fixed inset-0 -z-10 night-sky" />
       <main className="flex-1">
         <Hero />
-        <AboutKeeper />
-        <TrialsExperience />
-        <LessonsUnearthed />
+        <GraveyardJourney />
       </main>
-      <footer className="night-sky">
-        <GraveyardFloor />
-        <div className="px-6 py-10 bg-surface text-center text-sm text-foreground/40">
-          You walked the whole path. © 2026 Yogesh Khanal — the music haunts a
-          later phase.
-        </div>
-      </footer>
     </>
   );
 }
