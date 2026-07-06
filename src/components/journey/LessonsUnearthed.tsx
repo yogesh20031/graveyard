@@ -18,8 +18,8 @@ const STILL_DIGGING = ["Animations & motion", "Accessibility", "Backend basics"]
 // crossroads; the keeper's farewell (Epilogue) waits at the true end, once
 // both roads are walked.
 export const lessonsStations: WalkStationConfig[] = [
-  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
-  { key: "skills", align: "ground", enter: "right", node: <SkillsStation /> },
+  { key: "arrival", align: "center", enter: "sky", node: <Arrival /> },
+  { key: "skills", align: "ground", enter: "above", node: <SkillsStation /> },
   { key: "closing", align: "center", enter: "road", node: <Closing /> },
 ];
 

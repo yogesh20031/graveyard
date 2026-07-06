@@ -19,13 +19,19 @@ import { AboutForeground } from "./AboutForeground";
 import { WatchingEyes } from "./WatchingEyes";
 
 /** how a grave arrives as you reach it */
-export type WalkEnter = "road" | "left" | "right";
+export type WalkEnter = "road" | "left" | "right" | "above" | "sky";
 
 export type WalkStationConfig = {
   key: string;
   /** "ground" plants the content just above the grass; "center" floats it */
   align?: "center" | "ground";
-  /** "road" comes down the path from the horizon; "left"/"right" swing in from that side */
+  /**
+   * How the content enters as you reach it:
+   * - "road"  — rises up the path from the horizon, small → full
+   * - "left"/"right" — swings in from that side of the path
+   * - "above" — drops a short way in from just above the graveyard
+   * - "sky"   — falls from high in the night sky
+   */
   enter?: WalkEnter;
   node: ReactNode;
 };
@@ -215,6 +221,59 @@ function Cobble({
   );
 }
 
+// Per-direction motion for a mid-walk grave, on the shared 5-point
+// [appear, mid, arrive, depart, gone] track. Two families:
+//
+// Travelers (narrative content on the path — titles, the fork, the epilogue)
+// move to centre and pass:
+//   road — tiny at the horizon, visibly grows up the path (scale is the star)
+//   sky  — falls from fully off-screen above at full size, a slight tilt
+//          righting itself as it lands (y-travel is the star)
+//
+// Planted (the graveyard stones) appear IN PLACE, stay, and slowly fade there —
+// real headstones don't move, the walker does:
+//   above — a short hover-down onto its spot, then fades where it stands
+//   left/right — stands beside the path on that side (constant x offset),
+//          only gentle walk-past parallax, fading in and out standing there
+//
+// first/last graves don't use this — they have their own already-in-front /
+// stops-in-front envelopes.
+const ENTER_ENVELOPES: Record<
+  WalkEnter,
+  { x: number[]; y: number[]; scale: number[]; rotate: number[] }
+> = {
+  road: {
+    x: [0, 0, 0, 0, 0],
+    y: [-150, -70, -8, 8, 240],
+    scale: [0.35, 0.7, 1, 1, 1.35],
+    rotate: [0, 0, 0, 0, 0],
+  },
+  sky: {
+    x: [0, 0, 0, 0, 0],
+    y: [-720, -330, -12, 10, 60],
+    scale: [1, 1, 1, 1, 1.04],
+    rotate: [-5, -2, 0, 0, 3],
+  },
+  above: {
+    x: [0, 0, 0, 0, 0],
+    y: [-130, -60, -4, 4, 26],
+    scale: [0.95, 0.98, 1, 1, 1.02],
+    rotate: [0, 0, 0, 0, 0],
+  },
+  left: {
+    x: [-64, -64, -64, -64, -64],
+    y: [26, 10, -2, 4, 18],
+    scale: [0.86, 0.95, 1, 1.02, 1.05],
+    rotate: [0, 0, 0, 0, 0],
+  },
+  right: {
+    x: [64, 64, 64, 64, 64],
+    y: [26, 10, -2, 4, 18],
+    scale: [0.86, 0.95, 1, 1.02, 1.05],
+    rotate: [0, 0, 0, 0, 0],
+  },
+};
+
 type StationProps = {
   progress: MotionValue<number>;
   index: number;
@@ -224,13 +283,12 @@ type StationProps = {
   children: ReactNode;
 };
 
-// One grave on the walk, moving with the depth of the scene. A "road" grave
-// comes straight down the path from the horizon, growing as you reach it; a
-// "left"/"right" grave swings in from that side of the path — a headstone you
-// pass — settles in front of you to read, then slides back off that way as you
-// walk on. Never enlarges past 1× in the reading zone (bigger would clip inside
-// the pinned viewport). The first grave is already in front of you; the last
-// one stops there.
+// One grave on the walk (see ENTER_ENVELOPES for the two motion families):
+// travelers ("road"/"sky") move to centre and pass; planted stones
+// ("left"/"right"/"above") appear in their place in the graveyard, hold with
+// only walk-past parallax, and slowly fade out where they stand. Never enlarges
+// past ~1× in the reading zone (bigger would clip inside the pinned viewport).
+// The first grave is already in front of you; the last one stops there.
 function Station({
   progress,
   index,
@@ -243,65 +301,53 @@ function Station({
   const start = index / count;
   const end = (index + 1) / count;
 
-  // the four phases of approaching a monument on foot; `appear` leads the
-  // slice by almost half so the next grave is already visible down the path
-  const appear = start - slice * 0.45;
-  const arrive = start + slice * 0.15;
+  // the phases of approaching a monument on foot; `appear` leads the slice by
+  // more than half so the grave emerges well before it's readable, `mid` is the
+  // halfway point of the approach — near-fully visible there, so the travel
+  // itself is actually seen — and `gone` lingers so stones slowly fade out
+  const appear = start - slice * 0.55;
+  const arrive = start + slice * 0.22;
+  const mid = appear + (arrive - appear) * 0.5;
   const depart = end - slice * 0.15;
-  const gone = end + slice * 0.2;
+  const gone = end + slice * 0.3;
 
   const first = index === 0;
   const last = index === count - 1;
-  // side entrances only apply to the middle graves; the arrival and the
-  // epilogue always come down the road, centred
-  const side = !first && !last ? enter : "road";
+  // the direction only applies to mid-walk graves; the first is already in
+  // front at scroll 0 and the last stops in front, so both get their own path
+  const env = ENTER_ENVELOPES[enter];
 
   const input = first
     ? [0, depart, gone]
     : last
-      ? [appear, arrive, 1]
-      : [appear, arrive, depart, gone];
+      ? [appear, mid, arrive, 1]
+      : [appear, mid, arrive, depart, gone];
   const opacity = useTransform(
     progress,
     input,
-    // the linear ramp doubles as fog: distant monuments read half-faded
-    first ? [1, 1, 0] : last ? [0, 1, 1] : [0, 1, 1, 0],
+    // near-full opacity by mid-approach: the fall/rise/materialise plays out
+    // visible, instead of everything fading in only at its final pose
+    first ? [1, 1, 0] : last ? [0, 0.9, 1, 1] : [0, 0.9, 1, 1, 0],
   );
-  // swings in from the chosen side, settles centred, slides back off as you pass
   const x = useTransform(
     progress,
     input,
-    first || last
-      ? [0, 0, 0]
-      : side === "left"
-        ? [-620, 0, 0, -240]
-        : side === "right"
-          ? [620, 0, 0, 240]
-          : [0, 0, 0, 0],
+    first ? [0, 0, 0] : last ? [0, 0, 0, 0] : env.x,
   );
-  // grows the whole time but never past 1× in the reading zone
   const scale = useTransform(
     progress,
     input,
-    first
-      ? [0.95, 1, 1.35]
-      : last
-        ? [0.65, 0.95, 1]
-        : side === "road"
-          ? [0.65, 0.95, 1, 1.35]
-          : [0.72, 0.95, 1, 1.2],
+    first ? [0.95, 1, 1.35] : last ? [0.5, 0.8, 0.95, 1] : env.scale,
   );
-  // "road" descends from the horizon; side graves ride in nearer eye level
   const y = useTransform(
     progress,
     input,
-    first
-      ? [-8, 8, 240]
-      : last
-        ? [-150, -8, 8]
-        : side === "road"
-          ? [-150, -8, 8, 240]
-          : [70, -4, 8, 170],
+    first ? [-8, 8, 240] : last ? [-150, -60, -8, 8] : env.y,
+  );
+  const rotate = useTransform(
+    progress,
+    input,
+    first ? [0, 0, 0] : last ? [0, 0, 0, 0] : env.rotate,
   );
   // only the station in its reading zone takes clicks — invisible stations
   // overlap it and must not swallow links/buttons. The envelopes guarantee
@@ -319,7 +365,7 @@ function Station({
       )}
     >
       <motion.div
-        style={{ x, scale, y }}
+        style={{ x, scale, y, rotate }}
         className={cn(
           "max-h-[86dvh] w-full max-w-4xl transform-gpu will-change-transform",
           // planted monuments grow up from their base in the grass

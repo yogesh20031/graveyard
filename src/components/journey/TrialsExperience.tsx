@@ -32,7 +32,7 @@ const TRIALS: Trial[] = [
 // Left road from the crossroads: the works. One grave per project/job, risen
 // from the TRIALS array above; its end returns you to the crossroads.
 export const trialsStations: WalkStationConfig[] = [
-  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
+  { key: "arrival", align: "center", enter: "sky", node: <Arrival /> },
   ...TRIALS.map((trial, index) => ({
     key: trial.title,
     align: "ground" as const,

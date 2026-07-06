@@ -18,15 +18,15 @@ const BURIED_PASSIONS = [
 // tools and passions he was buried with. Walked as the `about` stage; its end
 // leads to the crossroads.
 export const aboutStations: WalkStationConfig[] = [
-  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
+  { key: "arrival", align: "center", enter: "sky", node: <Arrival /> },
   { key: "monument", align: "ground", enter: "left", node: <MonumentStation /> },
   {
     key: "tools",
     align: "ground",
-    enter: "right",
+    enter: "sky",
     node: <HeadstoneRow title="The keeper's tools" items={KEEPER_TOOLS} />,
   },
-  { key: "passions", align: "ground", enter: "left", node: <PassionsStation /> },
+  { key: "passions", align: "ground", enter: "above", node: <PassionsStation /> },
 ];
 
 // You've just stepped through the fog. Text floats in the night, exactly
