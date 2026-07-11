@@ -1,15 +1,13 @@
 # Journey reference — every structure, every animation
 
-A complete technical map of the graveyard experience as it stands after this
-session: the landing walk through the gate, and the three-stop journey
-behind it (About the Keeper → Trials & Experience → Lessons Unearthed). This
-is the detailed companion to [ARCHITECTURE.md](./ARCHITECTURE.md) (folder
-conventions) and [SESSION-LOG.md](./SESSION-LOG.md) (chronological narrative
-of how it got here) — this doc instead answers "what exactly is on screen,
-and what exactly is animating, at any given point in the scroll."
-
-Not committed yet — everything described below is uncommitted working-tree
-state on top of `996ac50`, per standing instruction.
+A complete technical map of the graveyard experience: the landing walk
+through the gate, and the single continuous journey behind it — About the
+Keeper, then a real fork in the road where the visitor chooses between
+Trials & Experience and Lessons Unearthed. This is the detailed companion to
+[ARCHITECTURE.md](./ARCHITECTURE.md) (folder conventions) and
+[SESSION-LOG.md](./SESSION-LOG.md) (chronological narrative of how it got
+here) — this doc instead answers "what exactly is on screen, and what
+exactly is animating, at any given point in the scroll."
 
 ---
 
@@ -17,21 +15,24 @@ state on top of `996ac50`, per standing instruction.
 
 ```
 src/app/page.tsx
-  <Hero />                  ── outside the gate (landing)
-  <AboutKeeper />           ── stop 1, id="about"
-  <TrialsExperience />      ── stop 2, id="experience"
-  <LessonsUnearthed />      ── stop 3, id="lessons"
-  <footer>
-    <GraveyardFloor />      ── closing ground strip
+  <Hero />                    ── outside the gate (landing)
+  <GraveyardJourney />        ── everything inside, id="about":
+    <WalkStage stations=[
+      about: arrival → monument → studies → tools → passions
+      journey-junction         ── the Crossroads fork (choose a road)
+      <chosen road only>       ── trials OR lessons stations
+      journey-other-road       ── offer the road not taken
+      journey-epilogue         ── mailto + GitHub
+    ]>
+    <GraveyardFloor />        ── closing ground strip
     "You walked the whole path…"
-  </footer>
 ```
 
-One continuous night: every section shares the same theme tokens, the same
-scene vocabulary (moon, fog, silhouettes), and — from `AboutKeeper` onward —
-the exact same walking mechanism (`JourneyWalk`). The visitor never leaves
-the graveyard; they walk into it once at the top and keep walking until the
-footer.
+One continuous night and **one continuous walk**: a single pinned
+`WalkStage` carries every station past the same scene. At the crossroads
+only the chosen road's content renders — picking the other road later (at
+`journey-other-road`) swaps the branch and walks the visitor back to its
+start.
 
 ---
 
@@ -112,77 +113,108 @@ static `div`s with no track/sticky/motion at all, copy shown at full opacity.
 
 ---
 
-## 3. The journey system — `JourneyWalk`
+## 3. The journey system — `WalkStage`
 
 **File:** `src/components/journey/JourneyWalk.tsx`
 
-This is the one component every stop behind the gate (`AboutKeeper`,
-`TrialsExperience`, `LessonsUnearthed`) renders through. It reproduces the
-landing's exact walking feel — pinned viewport, scroll-driven parallax,
-first-person composition — and adds a **station** system for arranging
-discrete pieces of content along the walk.
+One pinned first-person scene that the entire journey walks through.
+`GraveyardJourney` hands it a flat list of stations; the component pins the
+scene for `stations.length` viewports of scroll and streams every station
+past.
 
 ### Track sizing
 
-```ts
-const TRACK_HEIGHTS: Record<number, string> = {
-  3: "h-[300vh]",
-  4: "h-[400vh]",
-  5: "h-[500vh]",
-};
-```
-Track length scales with how many stations a stop has (100vh of scroll per
-station), applied via `cn("relative", TRACK_HEIGHTS[stations.length] ??
-"h-[400vh]")`.
+No height map: the scroll track is a flow block of one `h-[160dvh]` div per
+station, pulled up under the pinned scene with `-mt-[100dvh]`. The track is
+therefore always exactly `count × 160dvh` tall, for any station count —
+**1.6 viewports of walking per station** sets the pace (one viewport read
+as a sprint; "train running" was the feedback). Each track div carries
+`data-station-key={key}` — this is the DOM anchor `GraveyardJourney` uses
+to keep the scroll position stable when the branch below the fork swaps
+(see §6); all the anchor math measures the track-div height rather than
+assuming a viewport, so the pace can be retuned by changing one class.
 
-### Layers inside the sticky viewport (same 4-layer recipe as landing, journey-specific art)
+### Layers inside the sticky viewport
+
+Everything sits inside a **bob wrapper** (`absolute inset-x-0 -inset-y-2`)
+whose `y` oscillates `sin(progress × GROUND_CYCLES × 2 × 2π) × 5px` — the
+footstep rhythm. The 8px vertical overscan means the bob never exposes a
+frame edge. Inside it, back to front:
 
 | Layer | Transform | Range |
 |---|---|---|
-| SkyLayer | `y` | `0 → -50` |
-| AboutBackdrop | `y` / `scale` (origin-bottom) | `0→36` / `1→1.4` |
-| AboutForeground | `y` / `scale` (origin-bottom) | `0→60` / `1→2.2` |
-| FogLayer | `y` | `0 → -30` |
+| SkyLayer | `y` | `0 → -70` |
+| AboutBackdrop | `y` / `scale` (origin-bottom) | `0→80` / `1→1.25` |
+| AboutForeground | `y` / `scale` (origin-bottom) | `0→170` / `1→1.5` |
+| PassingScenery | per-item transforms (see below) | inside the foreground layer |
+| GroundFlow (cobbles) | per-item transforms (see below) | inside the foreground layer |
+| FogLayer | `y` | `0 → -50` |
 | WatchingEyes | static, absolutely positioned, not scroll-linked |
-| `.fog-fade` strip | static top overlay, thins downward | continues the landing's fog handoff so the top of each section doesn't start on a hard edge |
+| `.fog-fade` strip | static top overlay | continues the landing's fog handoff |
 
-Same `useScroll` + `useSpring(90, 26)` pattern as the landing. Reduced-motion
-fallback: layers rendered statically absolute-positioned, and stations
-rendered in normal document flow (`flex flex-col gap-24 py-24`) instead of
-pinned/animated.
+Spring: `useSpring(scrollYProgress, { stiffness: 150, damping: 38, mass:
+0.35 })` — near-critically damped so the scene tracks Lenis tightly.
+
+### The walking illusion (three scroll-linked systems)
+
+- **GroundFlow** — 8 cobbles cycling `GROUND_CYCLES = 7` times per stage:
+  each rises small at the road's vanishing point and sweeps down past your
+  feet, lane spread widening as it nears. They are **HTML divs animated only
+  by `x`/`y`/`scale` transforms** (compositor-only); the previous version
+  animated SVG `cx/cy/rx/ry` attributes, which forced a full-scene repaint
+  every frame.
+- **PassingScenery** (`PassingScenery.tsx`) — 6 roadside silhouettes
+  (headstones, dead trees, a cross, a fence post) cycling
+  `SCENERY_CYCLES = 3` times per stage. Each spawns tiny near the vanishing
+  point and sweeps out past the left/right frame edge with a **quadratic
+  ease** (`v²`) so distant things crawl and near things rush — the
+  perspective of walking past. Same transform-only HTML recipe as the
+  cobbles.
+- **Head-bob** — the ±5px sine on the bob wrapper, frequency locked to the
+  cobble cadence (two bobs per cycle ≈ one per stride).
 
 ### The station mechanism
 
 ```ts
 type WalkStationConfig = {
   key: string;
-  align?: "center" | "ground";   // "center" floats mid-screen, "ground" sits just above the grass
+  align?: "center" | "ground"; // "ground" plants it just above the grass
+  enter?: "road" | "left" | "right" | "above";
+  wide?: boolean;              // span the road (used by the Crossroads)
   node: ReactNode;
 };
 ```
 
-Each station gets an equal slice of the scroll progress: `start = index /
-count`, `end = (index+1) / count`, with a fade window `fade = (end-start) *
-0.3` at each edge.
+Each station gets an equal slice of progress and a 5-point envelope
+`[appear, mid, arrive, depart, gone]`:
 
-- **First station**: visible at progress 0, fades out over `[end-fade, end]`.
-- **Last station**: hidden at 0, fades in over `[start, start+fade]`, then holds to 1.
-- **Middle stations**: 4-point envelope `[start, start+fade, end-fade, end] → [0,1,1,0]` — rises in, holds, falls away.
+- `appear = start − slice×0.55` — emerges well before it's readable
+- `arrive = start + slice×0.15` — fully in place early…
+- `depart = end − slice×0.10` — …and holds late: each station is fully
+  readable for ~75% of its slice (this was the "content isn't shown well"
+  fix — previously `0.22/0.15`)
+- opacity hits 0.9 by `mid` so the entrance travel is actually seen
 
-`y` moves in lockstep with opacity: `60 → 0 → 0 → -60` (rises up out of the
-fog from below, holds level, sinks back down as you leave it) — this is
-what makes each station feel like a physical thing you walk up to and then
-past, not a slide that just cross-fades.
+Two motion families (`ENTER_ENVELOPES`): **travelers** (`road` — titles,
+the fork, the epilogue) grow up the path to centre and pass below;
+**planted stones** (`left`/`right`/`above`) appear in place at the roadside
+(position from flex layout, not transforms), hold with only a small
+walk-past drift, and fade where they stand. First station is already in
+front at progress 0; the last stops in front.
 
-**Click-through fix:** since all stations are absolutely stacked
-(`absolute inset-0`), an invisible station would otherwise sit on top of the
-visible one and swallow its clicks. Fixed with a derived MotionValue:
+**Click-through fix:** stations are absolutely stacked, so two derived
+MotionValues keep the stack honest:
 ```ts
-const pointerEvents = useTransform(opacity, (v) => (v > 0.6 ? "auto" : "none"));
+const pointerEvents = useTransform(opacity, (v) => (v > 0.9 ? "auto" : "none"));
+const visibility   = useTransform(opacity, (v) => (v < 0.001 ? "hidden" : "visible"));
 ```
-Only the station that's actually legible can be interacted with — this is
-what makes the epilogue's email/GitHub buttons (three stops later, in
-`LessonsUnearthed`) clickable at all.
+Only the station in its reading zone takes clicks, and fully-faded stations
+stop being painted/composited entirely (typically 9–10 of 11 hidden at any
+scroll position).
+
+Reduced-motion fallback: static scene layers, stations in normal document
+flow — the flow wrappers also carry `data-station-key` so branch-swap
+anchoring still works there.
 
 ---
 
@@ -268,53 +300,101 @@ the About monument station, `grid-cols-[3fr_2fr]` beside the bio slab.
 
 ---
 
-## 6. The three stops
+## 6. The journey — one walk, a real fork
 
-### Stop 1 — `AboutKeeper.tsx` (`id="about"`)
+### Assembly — `GraveyardJourney.tsx` (`id="about"`)
 
-4 stations, `h-[400vh]` track:
+The whole journey is one `WalkStage` with 11 stations:
 
-1. **Arrival** (center) — "Inside the gates · first stop / About the Keeper"
-   + one-line intro + "Keep walking".
-2. **Monument** (ground) — `StoneSlab` (2-paragraph bio) beside `KeeperFigure`,
-   sitting on a `StoneBase`.
-3. **Tools** (ground) — `HeadstoneRow title="The keeper's tools"` — React,
-   Next.js, TypeScript, Tailwind CSS.
-4. **Passions** (ground) — `HeadstoneRow title="Buried passions"` — Music,
-   Travel, Nature photography, Gaming, Sports — plus "The trials lie just
-   ahead — keep to the path" chaining into stop 2.
+```
+about (5) → journey-junction → chosen road (3) → journey-other-road → journey-epilogue
+```
 
-### Stop 2 — `TrialsExperience.tsx` (`id="experience"`)
+**True branching:** only the chosen road's stations render (`chosen ??
+"trials"`). Choosing at the fork, or clicking "Walk the other road" at the
+end, calls `setChosen` and then fixes the scroll in a `useLayoutEffect`:
 
-Station count is dynamic: `Arrival + one grave per TRIALS entry + Closing`.
-Currently 2 entries → 4 stations, `h-[400vh]`.
+- **From the fork** — `grabForkAnchor()` captures the walker's fraction
+  inside the fork's track-div slice *before* the swap; after render the same
+  `(index + fraction) × ((count−1)/count) × vh` position is restored
+  instantly (`lenis.scrollTo(top, { immediate: true })`). The walker never
+  feels the track length change beneath them.
+- **From `journey-other-road`** — targets the swapped branch's
+  `<branch>-arrival` track div at 0.45 into its slice and scrolls there
+  smoothly (Lenis makes it a walk back).
+- **Reduced motion** — stations are in normal flow, so a fork swap needs no
+  correction at all, and "walk the other road" uses plain `scrollIntoView`.
+
+### First stop — `AboutKeeper.tsx` (5 stations)
+
+1. **Arrival** (center) — "Inside the gates · first stop / About the Keeper".
+2. **Monument** (ground, left) — `StoneSlab` (3-paragraph bio) beside
+   `KeeperFigure`, on a `StoneBase`.
+3. **Studies** (ground, right) — the keeper's schooling: BCA on a
+   `StoneSlab`. **⚠️ `STUDY_SCHOOL` / `STUDY_YEARS` are `TODO` placeholders
+   — edit the two constants at the top of the file.**
+4. **Tools** (ground, left) — `BoulderSlab` — React, Next.js, TypeScript,
+   Tailwind CSS.
+5. **Passions** (ground, right) — `SkeletonPresenter` + `HeadstoneRow
+   title="Buried passions"`, chaining into "the crossroads await".
+
+### The Crossroads — `Crossroads.tsx` (station `journey-junction`, `wide`)
+
+An actual road partition, not a diagram: a full-scene SVG
+(`viewBox 0 0 1440 560`, station rendered `max-w-6xl` via the `wide` flag)
+drawn in the exact language of the walked road — the trodden-earth Y
+(`fill-foreground/8`) splits around a grass wedge, each branch carrying the
+walked road's wheel ruts (`fill-surface/70`) and shrinking cobbles. It draws
+**no ground of its own**, so the roads are cut straight into the scene
+behind and belong to the graveyard. In the crook: a leaning signpost with
+two arrow boards ("The Trials" ← / → "The Lessons"), grass tufts, a small
+leaning stone, and the flickering lantern on top.
+
+Interaction: two invisible half-width `RoadButton`s (`aria-pressed`,
+hover/focus). Hovering or choosing a road washes it amber
+(`fill-accent/25` overlay fading in) and lights its signpost board
+(`fill-accent-bright`), while a `radialGradient` fog cap rolls over the far
+end of the road *not* taken. On mobile (`sm:hidden`) the labels step off the
+boards and render as HTML text, since carved boards don't scale down
+readably.
+
+### The left road — `TrialsExperience.tsx` (3 stations)
+
+`Arrival + one grave per TRIALS entry` (2 entries today).
 
 ```ts
-type Trial = { title: string; period: string; story: string; tools: string[] };
-const TRIALS: Trial[] = [ /* 2 placeholder entries, marked TODO */ ];
+type Trial = { title; period; story; tools: string[]; link?: string };
 ```
 
 **⚠️ `TRIALS` is a placeholder — both entries ("The First Build", "Client
 Trials") are marked `TODO` in the file and need Yogesh's real project/work
-history.** Each entry becomes one `TrialGrave`: a `StoneSlab` with the
-period as the overline, the title as an `h3`, the story as prose, and the
-tools joined `" · "` at the base, sitting on a `StoneBase`.
+history.** Each entry becomes one `TrialGrave` (`StoneSlab` + `StoneBase`);
+an optional `link` renders a small "Visit the ruin ↗" anchor on the stone.
 
-### Stop 3 — `LessonsUnearthed.tsx` (`id="lessons"`)
+### The right road — `LessonsUnearthed.tsx` (3 stations)
 
-3 stations, `h-[300vh]`:
+1. **Arrival** (center) — "The right road · the knowledge".
+2. **Skills** (ground) — two stacked `HeadstoneRow`s: "Dug up" / "Still
+   digging".
+3. **Field notes** (ground) — a `BoulderSlab` carrying three short carved
+   lessons ("On debugging" / "On shipping" / "On learning").
 
-1. **Arrival** (center) — "Further still · third stop / Lessons Unearthed".
-2. **Skills** (ground) — two stacked `HeadstoneRow`s: "Dug up" (HTML & CSS,
-   JavaScript, TypeScript, React, Next.js, Tailwind CSS, Git) and "Still
-   digging" (Animations & motion, Accessibility, Backend basics).
-3. **Epilogue** (center) — "The end of the path — for now" + two `Button`s:
-   `mailto:khanalyogesh0007@gmail.com` (solid, skull) and
-   `https://github.com/yogesh20031` (outline, opens in a new tab) + a line
-   teasing the future music player phase.
+### The road not taken — `OtherRoad.tsx` (station `journey-other-road`)
 
-**⚠️ Epilogue email/GitHub are also defaults chosen when a content
-clarification question timed out — swap either link if not wanted.**
+"You walked The Trials — The Lessons still waits back at the fork." with a
+**Walk The Lessons** button (swaps the branch and scrolls back, see
+Assembly) and the quiet exit line "or keep walking — the gate is just
+ahead".
+
+### Epilogue (station `journey-epilogue`, in `LessonsUnearthed.tsx`)
+
+"The end of the path — for now" + two `Button`s:
+`mailto:khanalyogesh0007@gmail.com` (solid, skull) and
+`https://github.com/yogesh20031` (outline, new tab) + the music-player
+tease.
+
+**⚠️ Epilogue email/GitHub are defaults chosen when a content clarification
+question timed out — swap either link if not wanted.**
 
 ### Footer — `page.tsx` + `GraveyardFloor.tsx`
 
@@ -371,7 +451,21 @@ keyframe at different durations with a negative delay on one
 candles reuse the identical keyframe compressed into ~4-5s cycles for a
 faster gutter.
 
-### Performance-motivated rewrites this session
+### Scroll-linked walking layers (MotionValues, not keyframes)
+
+These aren't CSS animations — they're driven by the walk's spring-smoothed
+scroll progress (see §3), and all of them bypass entirely under reduced
+motion because the pinned scene itself does:
+
+| System | Motion | Purpose |
+|---|---|---|
+| GroundFlow cobbles (8) | `x`/`y`/`scale`/`opacity`, 7 cycles per stage | ground continuously walked over |
+| PassingScenery (6) | same, 3 cycles, quadratic ease, sweeps past frame edges | roadside stones/trees passing you |
+| Head-bob wrapper | `y = sin(progress × 28π) × 5px` | footstep rhythm on the whole view |
+| Station envelopes | 5-point opacity/x/y/scale + derived `pointerEvents`/`visibility` | monuments approached on foot |
+| Crossroads road lighting | CSS `transition-opacity/colors` on hover/choice (amber wash, board glow, fog cap) | the fork responds to the walker |
+
+### Performance-motivated rewrites
 
 - **All flame/eye glows**: were SVG `<circle>`s under `feGaussianBlur`
   filters animated by opacity — the filter re-rasterizes every frame under
@@ -381,6 +475,13 @@ faster gutter.
 - **Fog**: was blurred SVG ellipses; replaced with plain blurred HTML
   `<div>`s (`.fog-puff`, `filter: blur(28px)` in CSS, animated via
   `transform` only) — compositor-only, `will-change: transform` hinted.
+- **Flowing cobbles**: were `motion.ellipse`s animating `cx/cy/rx/ry` SVG
+  attributes — 32 attribute writes per frame forcing the full-screen scene
+  SVG to repaint continuously. Now transform-only HTML divs (see §3).
+- **Invisible stations**: every station used to stay painted at opacity 0
+  with a blanket `will-change-transform`; now `visibility: hidden` culls
+  them (9–10 of 11 at any moment) and the hint lives only on the four scene
+  layers.
 - All flicker/glow classes carry `will-change: opacity`.
 
 ---
@@ -408,13 +509,16 @@ Two derived helpers used throughout the scene work:
 ## 9. Known gaps / next actions
 
 - `TrialsExperience.tsx` → replace the 2 placeholder `TRIALS` entries with
-  real project/work history (marked `TODO` in the file).
+  real project/work history (marked `TODO` in the file); add `link` where a
+  project has a live site or repo.
+- `AboutKeeper.tsx` → fill in `STUDY_SCHOOL` / `STUDY_YEARS` (marked `TODO`
+  at the top of the file).
 - `LessonsUnearthed.tsx` epilogue → confirm or change the `mailto:` and
   GitHub links (defaults chosen from the brief when a clarifying question
   timed out).
-- Headless-Chrome screenshot verification of fragment-scrolled sections
-  (`/#about`, `/#experience`, `/#lessons`) rasterizes blank — a tool
-  limitation, not a bug (confirmed correct via `--dump-dom` and would need a
-  live browser or real interaction to screenshot properly).
-- Nothing in this session is committed — review the working tree and commit
-  when ready.
+- Visual QA note: plain `--screenshot` headless captures of fragment URLs
+  rasterize blank, but driving headless Chrome over CDP (navigate → 
+  `window.scrollTo` → wait → `Page.captureScreenshot`) paints correctly —
+  see `walkshot.mjs` pattern from the 2026-07-10 session for scripted
+  verification of scrolled/pinned states.
+- Uncommitted work in the tree — review and commit when ready.

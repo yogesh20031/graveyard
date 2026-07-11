@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { BoulderSlab } from "./BoulderSlab";
 import { HeadstoneRow } from "./HeadstoneRow";
 import type { WalkStationConfig } from "./JourneyWalk";
 
@@ -14,20 +15,35 @@ const DUG_UP = [
 
 const STILL_DIGGING = ["Animations & motion", "Accessibility", "Backend basics"];
 
-// Right road from the crossroads: the knowledge. Its end returns you to the
-// crossroads; the keeper's farewell (Epilogue) waits at the true end, once
-// both roads are walked.
+const FIELD_NOTES = [
+  {
+    title: "On debugging",
+    note: "Read the error twice before touching the code — every bug gets a burial, but only after the autopsy.",
+  },
+  {
+    title: "On shipping",
+    note: "A finished grave beats a perfect blueprint. Ship it, then keep carving.",
+  },
+  {
+    title: "On learning",
+    note: "The lessons that stay are the ones exhumed from things that broke in front of people.",
+  },
+];
+
+// The right road from the crossroads: the knowledge. Skills as headstone
+// rows, then the keeper's field notes; the road-not-taken station follows.
+// The keeper's farewell (Epilogue) waits at the true end of the walk.
 export const lessonsStations: WalkStationConfig[] = [
-  { key: "arrival", align: "center", enter: "sky", node: <Arrival /> },
+  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
   { key: "skills", align: "ground", enter: "above", node: <SkillsStation /> },
-  { key: "closing", align: "center", enter: "road", node: <Closing /> },
+  { key: "notes", align: "ground", enter: "left", node: <FieldNotesStation /> },
 ];
 
 function Arrival() {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       <p className="font-display text-sm tracking-etched uppercase text-accent-bright">
-        Further still · third stop
+        The right road · the knowledge
       </p>
       <h2 className="font-display text-4xl text-foreground sm:text-5xl">
         Lessons Unearthed
@@ -51,16 +67,28 @@ function SkillsStation() {
   );
 }
 
-function Closing() {
+// What the digging actually taught — short lessons weathered into a boulder.
+function FieldNotesStation() {
   return (
-    <p className="text-center font-display text-xs tracking-etched uppercase text-foreground/40">
-      The path winds on — the way out is near
-    </p>
+    <BoulderSlab overline="Field notes, carved in passing">
+      <dl className="flex flex-col gap-4">
+        {FIELD_NOTES.map((entry) => (
+          <div key={entry.title}>
+            <dt className="mb-1 text-center font-display text-xs tracking-etched uppercase text-accent-bright/80">
+              {entry.title}
+            </dt>
+            <dd className="text-center italic text-foreground/60">
+              {entry.note}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </BoulderSlab>
   );
 }
 
 // The gate out — or the door to the keeper. Rendered at the true end of the
-// walk (the `end` stage), once both roads from the crossroads are walked.
+// walk, after whichever roads the visitor chose to take.
 export function Epilogue() {
   return (
     <div className="flex flex-col items-center gap-6 text-center">

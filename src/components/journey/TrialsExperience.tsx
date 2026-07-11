@@ -7,11 +7,14 @@ type Trial = {
   period: string;
   story: string;
   tools: string[];
+  /** live project or repo — rendered as a small "visit the ruin" link */
+  link?: string;
 };
 
 // TODO: replace these placeholder trials with real projects/work — edit
 // this array only, the scene handles the rest. Keep stories to 2–3
-// sentences; the stones are small.
+// sentences; the stones are small. Add `link` to point a stone at its live
+// site or repository.
 const TRIALS: Trial[] = [
   {
     title: "The First Build",
@@ -29,10 +32,10 @@ const TRIALS: Trial[] = [
   },
 ];
 
-// Left road from the crossroads: the works. One grave per project/job, risen
-// from the TRIALS array above; its end returns you to the crossroads.
+// The left road from the crossroads: the works. One grave per project/job,
+// risen from the TRIALS array above; the road-not-taken station follows.
 export const trialsStations: WalkStationConfig[] = [
-  { key: "arrival", align: "center", enter: "sky", node: <Arrival /> },
+  { key: "arrival", align: "center", enter: "road", node: <Arrival /> },
   ...TRIALS.map((trial, index) => ({
     key: trial.title,
     align: "ground" as const,
@@ -40,14 +43,13 @@ export const trialsStations: WalkStationConfig[] = [
     enter: (index % 2 === 0 ? "left" : "right") as WalkEnter,
     node: <TrialGrave trial={trial} />,
   })),
-  { key: "closing", align: "center", enter: "road", node: <Closing /> },
 ];
 
 function Arrival() {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       <p className="font-display text-sm tracking-etched uppercase text-accent-bright">
-        Deeper in · second stop
+        The left road · the works
       </p>
       <h2 className="font-display text-4xl text-foreground sm:text-5xl">
         Trials &amp; Experience
@@ -66,23 +68,25 @@ function TrialGrave({ trial }: { trial: Trial }) {
   return (
     <div className="mx-auto w-full max-w-xl">
       <StoneSlab overline={trial.period}>
-        <h3 className="text-center font-display text-2xl text-foreground">
+        <h3 className="text-center font-display text-xl text-foreground sm:text-2xl">
           {trial.title}
         </h3>
         <p>{trial.story}</p>
         <p className="text-center font-display text-xs tracking-etched uppercase text-foreground/40">
           {trial.tools.join(" · ")}
         </p>
+        {trial.link && (
+          <a
+            href={trial.link}
+            target="_blank"
+            rel="noreferrer"
+            className="mx-auto font-display text-xs tracking-etched uppercase text-accent transition-colors hover:text-accent-bright"
+          >
+            Visit the ruin ↗
+          </a>
+        )}
       </StoneSlab>
       <StoneBase />
     </div>
-  );
-}
-
-function Closing() {
-  return (
-    <p className="text-center font-display text-xs tracking-etched uppercase text-foreground/40">
-      The path winds on — more graves ahead
-    </p>
   );
 }

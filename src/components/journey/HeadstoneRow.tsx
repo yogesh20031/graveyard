@@ -19,12 +19,12 @@ export function HeadstoneRow({ title, items }: HeadstoneRowProps) {
         {title}
       </h3>
       <div className="w-full">
-        <ul className="flex flex-wrap items-end justify-center gap-3">
+        <ul className="flex flex-wrap items-end justify-center gap-2.5">
           {items.map((label, index) => (
             <li
               key={label}
               className={cn(
-                "px-4 pt-4 pb-3 rounded-t-full border border-foreground/20 bg-surface/80 text-center font-display text-xs tracking-etched uppercase text-foreground/70",
+                "px-3 pt-3 pb-2.5 rounded-t-full border border-foreground/20 bg-surface/80 text-center font-display text-xs tracking-etched uppercase text-foreground/70",
                 STONE_TILTS[index % STONE_TILTS.length],
               )}
             >

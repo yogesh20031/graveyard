@@ -26,14 +26,20 @@ src/
         HillsLayer.tsx
         ForegroundLayer.tsx
         FogLayer.tsx
-    journey/            # the stops inside the graveyard (Phase 2)
-      JourneyWalk.tsx   # (client) shared pinned walk; stations rise/fall
-      AboutKeeper.tsx   # stop 1 — the keeper's story
-      TrialsExperience.tsx # stop 2 — projects/work (edit TRIALS array)
-      LessonsUnearthed.tsx # stop 3 — skills + contact epilogue
-      AboutBackdrop.tsx # horizon silhouettes behind every stop
+    journey/            # everything inside the gates (Phase 2)
+      GraveyardJourney.tsx # (client) assembles the walk; owns the branch choice
+      JourneyWalk.tsx   # (client) the pinned walk: layers, bob, stations
+      PassingScenery.tsx # (client) roadside silhouettes sweeping past
+      Crossroads.tsx    # (client) the Y-fork road partition + signpost
+      OtherRoad.tsx     # (client) end-of-road offer of the road not taken
+      AboutKeeper.tsx   # first stop — the keeper's story (edit STUDY_* consts)
+      TrialsExperience.tsx # left road — projects/work (edit TRIALS array)
+      LessonsUnearthed.tsx # right road — skills, field notes + epilogue
+      AboutBackdrop.tsx # horizon silhouettes behind the whole walk
       AboutForeground.tsx # feet-level ground, road, graves beside you
       StoneSlab.tsx     # leaning monument with an inscription (shared)
+      BoulderSlab.tsx   # irregular carved boulder (shared)
+      SkeletonPresenter.tsx # upright skeleton gesturing at content
       HeadstoneRow.tsx  # crooked one-word headstone row (shared)
       StoneBase.tsx     # dirt/grass strip that plants stones in the ground
       KeeperFigure.tsx  # skeleton-keeper SVG vignette

@@ -3,6 +3,42 @@
 All notable changes, grouped by phase. See [ROADMAP.md](./ROADMAP.md) for
 what each phase covers.
 
+## The fork is real — branching walk + walking feel — 2026-07-10
+
+### Added
+
+- **The Crossroads as an actual road partition** — the walked road now
+  visibly splits in a full-scene Y-fork (same trodden-earth/ruts/cobbles
+  language as the road itself, cut straight into the scene with no panel of
+  its own), with a signpost (two arrow boards + dying lantern) in the
+  crook. Hovering/choosing a road washes it amber and lights its board
+  while fog rolls over the road not taken.
+- **True branching** — only the chosen road's stations render below the
+  fork. New `OtherRoad` station at each road's end ("You walked The Trials
+  — The Lessons still waits back at the fork") swaps the branch and walks
+  you back to its start. Scroll position survives the swap via
+  `data-station-key` track anchors + Lenis.
+- **Walking feel** — footstep head-bob on the whole view, `PassingScenery`
+  (roadside silhouettes sweeping past the frame edges with perspective
+  easing), flowing cobbles rebuilt as compositor-only transform divs.
+- **More content** — Studies station in About (**BCA school/years are
+  `TODO` placeholders**), optional `link` on trials ("Visit the ruin ↗"),
+  Field-notes boulder in Lessons (three carved lessons learned).
+
+### Changed
+
+- **Walk pace slowed 1.6×** — each station now spans `160dvh` of scroll
+  instead of one viewport ("it feels like a train is running" — the whole
+  scene, cobbles, scenery, and bob slow together since everything keys off
+  the same progress). Scroll-anchor math measures the track-div height, so
+  the pace is retunable via one class.
+- Station envelopes hold each monument fully readable for ~75% of its
+  slice (`arrive` earlier, `depart` later); fully-faded stations are
+  culled with `visibility: hidden` instead of staying painted.
+- Branch arrivals renamed to match the fork ("The left road · the works" /
+  "The right road · the knowledge"); per-branch `Closing` stations removed
+  (the `OtherRoad` station closes every road).
+
 ## Phase 2 complete — the whole journey walks — 2026-07-04
 
 ### Added

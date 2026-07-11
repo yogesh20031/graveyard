@@ -128,6 +128,51 @@ scope grew on Yogesh's feedback:
   offsets doesn't paint in headless captures. Verify deep sections via
   DOM dumps or live browser, not headless pixels.
 
+## Session 2026-07-10 — real fork, real branch, real walk
+
+### Goal
+
+Yogesh's feedback on the finished journey: the crossroads was "not only two
+line, it should [be] like actual road partition"; choosing should "show
+different content"; and the About walk was "not getting actual walking in
+graveyard feel, not optimize showing of the content and the content is less
+in the site."
+
+### Completed
+
+- **Crossroads rebuilt as an actual road partition** — full-scene Y-fork
+  SVG in the walked road's language (trodden earth, ruts, cobbles), drawn
+  with no ground of its own so it's cut into the scene; signpost with two
+  arrow boards + dying lantern; hover/choice washes the road amber and fogs
+  the other. First version had a `fill-surface` ground box that read as a
+  floating dark panel — removing it was the fix.
+- **True branching** — only the chosen road renders below the fork
+  (`GraveyardJourney`); new `OtherRoad` station at each road's end offers
+  the road not taken. Scroll stability across the swap comes from
+  `data-station-key` track divs + a captured fork-slice fraction restored
+  with `lenis.scrollTo(..., { immediate: true })`; "walk the other road"
+  smooth-scrolls back to the swapped branch's arrival. Verified over CDP:
+  keys swap `trials-* ↔ lessons-*`, scroll lands exactly on target,
+  no console errors.
+- **Walking feel** — head-bob (±5px sine locked to the cobble cadence, on
+  an overscanned wrapper), `PassingScenery` (6 roadside silhouettes
+  sweeping past the frame edges with quadratic perspective easing), and the
+  flowing cobbles rebuilt from per-frame SVG attribute animation into
+  transform-only HTML divs (compositor-friendly). Invisible stations now
+  get `visibility: hidden` (9–10 of 11 culled at any scroll position).
+- **Content** — new Studies station in About (BCA — school/years are `TODO`
+  placeholders), `link?` field on trials ("Visit the ruin ↗"), Field-notes
+  boulder in Lessons (3 carved lessons), expanded monument copy, wider
+  reading windows in the station envelope (`arrive 0.15` / `depart 0.10`).
+
+### Problems faced & how they were solved
+
+| Problem | Status | Notes |
+|---|---|---|
+| Fork looked like a floating panel | **Solved** | The fork SVG drew its own `fill-surface` ground rect — hard rectangle edges against the scene. Removed it; the roads are now cut straight into the scene's ground. |
+| Branch swap changes track length mid-scroll | **Solved** | Track divs carry `data-station-key`; capture `(index, fraction)` in the fork's slice before the swap, restore `(index + fraction) × ((count−1)/count) × vh` after — instant via Lenis. |
+| Headless screenshots of scrolled pinned states | **Solved (new method)** | Raw `--screenshot` of fragment URLs still rasterizes blank, but driving headless Chrome over CDP (scroll → settle → `Page.captureScreenshot`) paints fine. Script pattern in scratchpad `walkshot.mjs`; needs no new dependencies (Node ≥22 WebSocket). |
+
 ### Unsolved / action needed
 
 - **Security:** the project `.npmrc` contains a hardcoded GitHub PAT in

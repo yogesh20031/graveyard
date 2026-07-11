@@ -11,12 +11,12 @@ type StoneSlabProps = {
 // presenting a block of information as part of the graveyard.
 export function StoneSlab({ overline, children }: StoneSlabProps) {
   return (
-    <div className="p-6 sm:p-8 -rotate-1 rounded-t-[3rem] border-2 border-foreground/15 bg-surface/80">
-      <SkullIcon className="mx-auto mb-3 h-6 w-6 text-accent-bright/70" />
-      <p className="mb-5 text-center font-display text-xs tracking-etched uppercase text-foreground/40">
+    <div className="p-5 sm:p-6 -rotate-1 rounded-t-[3rem] border-2 border-foreground/15 bg-surface/80">
+      <SkullIcon className="mx-auto mb-2.5 h-5 w-5 text-accent-bright/70" />
+      <p className="mb-4 text-center font-display text-xs tracking-etched uppercase text-foreground/40">
         {overline}
       </p>
-      <div className="flex flex-col gap-4 text-sm leading-6 text-foreground/70 sm:text-base sm:leading-7">
+      <div className="flex flex-col gap-3 text-sm leading-6 text-foreground/70 sm:text-base sm:leading-6">
         {children}
       </div>
     </div>
