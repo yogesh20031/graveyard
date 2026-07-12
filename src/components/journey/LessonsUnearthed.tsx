@@ -112,6 +112,9 @@ export function Epilogue() {
         >
           Visit the crypt
         </Button>
+        <Button href="/playground" variant="outline" size="lg">
+          Enter the playground
+        </Button>
       </div>
       <p className="font-display text-xs tracking-etched uppercase text-foreground/35">
         Light the lantern, bottom right — this place has a sound

@@ -269,6 +269,31 @@ body {
   animation: cue-bounce 2.2s ease-in-out infinite;
 }
 
+/* the runner's stride — legs scissor from the hip while the game runs */
+@keyframes runner-stride {
+  0%,
+  100% {
+    transform: rotate(22deg);
+  }
+  50% {
+    transform: rotate(-22deg);
+  }
+}
+
+.runner-leg-a,
+.runner-leg-b {
+  transform-box: fill-box;
+  transform-origin: top center;
+}
+
+.runner-leg-a {
+  animation: runner-stride 0.38s linear infinite;
+}
+
+.runner-leg-b {
+  animation: runner-stride 0.38s linear -0.19s infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fog-layer,
   .fog-layer-slow,
@@ -283,6 +308,8 @@ body {
   .watching-eye,
   .watching-eye-delayed,
   .watching-eye-slow,
+  .runner-leg-a,
+  .runner-leg-b,
   .scroll-cue {
     animation: none;
   }

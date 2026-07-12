@@ -3,6 +3,45 @@
 All notable changes, grouped by phase. See [ROADMAP.md](./ROADMAP.md) for
 what each phase covers.
 
+## The playground + scene truth-telling — 2026-07-12
+
+### Added
+
+- **The Playground** (`/playground`) — a skeleton-runner game (Chrome-dino
+  style: jump the gravestones, the night gets faster, best score persists
+  to `localStorage`). Pure SVG/DOM in the site's own art language — the
+  obstacle stones reuse `tombstonePath`. Entered through a **3-second
+  scary gate** (`ScaryLoader`: dying lantern, fog, watching eyes, one omen
+  per second — deliberate theatre, plays every visit). Linked from the
+  Epilogue ("Enter the playground").
+- `RoadContext` — carries fork hover/chosen state from the Crossroads
+  station down to the scene without prop drilling.
+- `useHydratedReducedMotion` — hydration-safe replacement for motion's
+  `useReducedMotion`; see Fixed.
+- `docs/IMPROVEMENTS.md` — full prioritized audit: problems, animation
+  catalogue, music-to-scene coupling plan, what to do next.
+
+### Fixed
+
+- **Road travelers no longer fall from the sky.** Entrance envelopes are
+  authored in `dvh` against the shared `ROAD_HORIZON_DVH` — titles emerge
+  tiny at the road's vanishing point (below screen centre), grow up out of
+  the road (`origin-bottom`), hold, then sweep past your feet.
+- **No two stations legible at once.** The old handoff provably lit
+  station N at 1.0 while N+1 hit 0.9 (text collided mid-road, visible at
+  the passions → Crossroads seam). Outgoing stations are now gone before
+  incoming ones are readable, making the `>0.9` pointer-events invariant
+  actually true.
+- **The fork registers with the walked road by construction** — the Y is
+  drawn in `AboutForeground`'s own viewBox sharing the road's stem, opened
+  by a scroll-driven MotionValue on approach. The old floating
+  `1440×560`-viewBox ForkScene is gone.
+- **Reduced-motion hydration failure** — branching whole trees on
+  `useReducedMotion()` (server `false`, first client render `true`) made
+  React discard the server HTML and log an uncaught error. Both motion
+  modes now log zero console errors.
+- Stale "music haunts a later phase" copy (the player ships).
+
 ## The fork is real — branching walk + walking feel — 2026-07-10
 
 ### Added
