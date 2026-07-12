@@ -4,6 +4,25 @@
 
 export const SCENE_VIEW_BOX = "0 0 1440 810";
 export const SCENE_ASPECT = "xMidYMax slice";
+export const SCENE_HEIGHT = 810;
+
+// Where the walked road converges (see AboutForeground.Road). Anything that has
+// to sit ON the road — the fork, the content that walks up it — reads these
+// instead of re-deriving them.
+export const ROAD_VANISH_Y = 598;
+export const ROAD_MOUTH_LEFT = 702;
+export const ROAD_MOUTH_RIGHT = 740;
+
+// The horizon as an offset from the *viewport* centre, in dvh — the unit the
+// station envelopes work in, where y:0 is the middle of the screen. The road
+// converges ~72% down the frame, so anything emerging from the distance has to
+// start BELOW centre, not above it.
+//
+// Under `slice` the exact fraction drifts between 0.67 and 0.74 with the
+// viewport's aspect ratio, so this can't be exact for every screen; 21 is
+// within ~3dvh everywhere, and the emergence happens inside the fog band where
+// a few dvh don't read.
+export const ROAD_HORIZON_DVH = 21;
 
 export type Star = {
   x: number;

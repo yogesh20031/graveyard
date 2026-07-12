@@ -4,19 +4,20 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 import {
   motion,
-  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
 } from "motion/react";
 import type { MotionValue } from "motion/react";
 import { FogLayer } from "@/components/landing/scene/FogLayer";
+import { ROAD_HORIZON_DVH } from "@/components/landing/scene/geometry";
 import { SkyLayer } from "@/components/landing/scene/SkyLayer";
 import { cn } from "@/lib/cn";
 import { AboutBackdrop } from "./AboutBackdrop";
 import { AboutForeground } from "./AboutForeground";
 import { PassingScenery } from "./PassingScenery";
 import { WatchingEyes } from "./WatchingEyes";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 
 /** how a grave arrives as you reach it */
 export type WalkEnter = "road" | "left" | "right" | "above";
@@ -35,6 +36,8 @@ export type WalkStationConfig = {
   enter?: WalkEnter;
   /** span the whole road — for full-scene stations like the crossroads */
   wide?: boolean;
+  /** the road in the scene below splits open as this station is reached */
+  forksTheRoad?: boolean;
   node: ReactNode;
 };
 
@@ -53,7 +56,7 @@ const GROUND_CYCLES = 7;
 // through the style prop; that's the motion API, not static styling.
 export function WalkStage({ stations }: WalkStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useHydratedReducedMotion();
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -82,9 +85,32 @@ export function WalkStage({ stations }: WalkStageProps) {
     (v) => Math.sin(v * GROUND_CYCLES * 2 * Math.PI * 2) * 5,
   );
 
+  // The road ahead splits open as the walker comes up on the fork, and closes
+  // behind them once they are past it and committed to one branch. Timed off
+  // the fork station's own slice so the split is already there to be read when
+  // the station lands, and gone before the next station arrives.
+  const slice = 1 / stations.length;
+  const forkIndex = stations.findIndex((station) => station.forksTheRoad);
+  const hasFork = forkIndex >= 0;
+  const forkAt = forkIndex * slice;
+  const forkOpen = useTransform(
+    progress,
+    hasFork
+      ? [
+          forkAt - slice * 0.55,
+          forkAt + slice * 0.12,
+          forkAt + slice * 0.75,
+          forkAt + slice,
+        ]
+      : [0, 1, 2, 3],
+    hasFork ? [0, 1, 1, 0] : [0, 0, 0, 0],
+  );
+
   if (prefersReducedMotion) {
     return (
-      <div className="relative">
+      // useScroll() above tracks this ref whichever branch renders; leaving it
+      // unattached here makes motion warn that the target never hydrated
+      <div ref={containerRef} className="relative">
         <div aria-hidden="true" className="absolute inset-x-0 top-0 h-dvh">
           <SkyLayer />
         </div>
@@ -134,7 +160,7 @@ export function WalkStage({ stations }: WalkStageProps) {
             style={{ y: foregroundY, scale: foregroundScale }}
             className="absolute inset-0 origin-bottom transform-gpu will-change-transform"
           >
-            <AboutForeground />
+            <AboutForeground fork={forkOpen} />
             <PassingScenery progress={progress} />
             <GroundFlow progress={progress} />
           </motion.div>
@@ -247,8 +273,12 @@ function Cobble({
 // [appear, mid, arrive, depart, gone] track. Two families:
 //
 // Travelers (narrative content on the path — titles, the fork, the epilogue)
-// move to centre and pass:
-//   road — tiny at the horizon, visibly grows up the path (scale is the star)
+// walk up the road to meet you and then pass:
+//   road — emerges tiny at the road's vanishing point, which is BELOW the
+//     middle of the screen (see ROAD_HORIZON_DVH); grows up out of the road to
+//     eye level, holds, then swells and sweeps down past your feet as you walk
+//     through it. Its tail is the same move the cobbles under your feet make
+//     (see Cobble) — the road and the things standing on it finally agree.
 //
 // Planted (the graveyard stones) appear IN PLACE, stay, and slowly fade there —
 // real headstones don't move, the walker does. Their roadside position comes
@@ -258,30 +288,34 @@ function Cobble({
 //   left/right — stands at that side of the road, gentle walk-past parallax,
 //          fading in and out standing there
 //
-// first/last graves don't use this — they have their own already-in-front /
-// stops-in-front envelopes.
-const ENTER_ENVELOPES: Record<
-  WalkEnter,
-  { x: number[]; y: number[]; scale: number[] }
-> = {
+// The first grave doesn't use this — it is already in front of you at scroll 0.
+type Envelope = {
+  /** px — a small walk-past drift, so it stays put across viewport sizes */
+  x: number[];
+  /** dvh — the road's horizon is +ROAD_HORIZON_DVH, the screen's middle is 0 */
+  y: number[];
+  scale: number[];
+};
+
+const ENTER_ENVELOPES: Record<WalkEnter, Envelope> = {
   road: {
     x: [0, 0, 0, 0, 0],
-    y: [-150, -70, -8, 8, 240],
-    scale: [0.35, 0.7, 1, 1, 1.35],
+    y: [ROAD_HORIZON_DVH, ROAD_HORIZON_DVH * 0.52, 0, 0, 38],
+    scale: [0.18, 0.5, 1, 1, 1.9],
   },
   above: {
     x: [0, 0, 0, 0, 0],
-    y: [-130, -60, -4, 4, 26],
+    y: [-14, -6.5, -0.5, 0.5, 3],
     scale: [0.95, 0.98, 1, 1, 1.02],
   },
   left: {
     x: [-22, -8, 0, 0, -14],
-    y: [26, 10, -2, 4, 18],
+    y: [3, 1, -0.2, 0.5, 2],
     scale: [0.86, 0.95, 1, 1.02, 1.05],
   },
   right: {
     x: [22, 8, 0, 0, 14],
-    y: [26, 10, -2, 4, 18],
+    y: [3, 1, -0.2, 0.5, 2],
     scale: [0.86, 0.95, 1, 1.02, 1.05],
   },
 };
@@ -316,22 +350,27 @@ function Station({
   const start = index / count;
   const end = (index + 1) / count;
 
-  // the phases of approaching a monument on foot; `appear` leads the slice by
-  // more than half so the grave emerges well before it's readable, `mid` is the
-  // halfway point of the approach — near-fully visible there, so the travel
-  // itself is actually seen — `arrive` comes early and `depart` late so each
-  // stone holds fully readable for most of its slice, and `gone` lingers so
-  // stones slowly fade out
-  const appear = start - slice * 0.55;
-  const arrive = start + slice * 0.15;
+  // The phases of approaching a monument on foot. Two things are in tension
+  // here: a station has to be visible while it is still *travelling* (otherwise
+  // the walk-up is wasted and everything just fades in at its final pose), but
+  // no two stations may be legible at the same time (otherwise their text
+  // collides in the middle of the road).
+  //
+  // So `appear` leads the slice by half — the approach is seen — but the
+  // outgoing station starts fading at `depart` and is fully `gone` before the
+  // end of its own slice, which is before the incoming one becomes readable.
+  // The incoming one is only at 0.65 by `mid`: clearly there, in flight, but
+  // not competing to be read.
+  const appear = start - slice * 0.5;
+  const arrive = start + slice * 0.12;
   const mid = appear + (arrive - appear) * 0.5;
-  const depart = end - slice * 0.1;
-  const gone = end + slice * 0.3;
+  const depart = end - slice * 0.42;
+  const gone = end - slice * 0.18;
 
   const first = index === 0;
   const last = index === count - 1;
   // the direction only applies to mid-walk graves; the first is already in
-  // front at scroll 0 and the last stops in front, so both stay centred
+  // front at scroll 0 and the last stops in front, so both stay on the road
   const placement = first || last ? "road" : enter;
   const env = ENTER_ENVELOPES[placement];
 
@@ -343,28 +382,36 @@ function Station({
   const opacity = useTransform(
     progress,
     input,
-    // near-full opacity by mid-approach: the fall/rise/materialise plays out
-    // visible, instead of everything fading in only at its final pose
-    first ? [1, 1, 0] : last ? [0, 0.9, 1, 1] : [0, 0.9, 1, 1, 0],
+    first ? [1, 1, 0] : last ? [0, 0.65, 1, 1] : [0, 0.65, 1, 1, 0],
   );
   const x = useTransform(
     progress,
     input,
     first ? [0, 0, 0] : last ? [0, 0, 0, 0] : env.x,
   );
+  // the last station walks up the road like any other traveler, but stops in
+  // front of you instead of sweeping past — the walk ends there
   const scale = useTransform(
     progress,
     input,
-    first ? [0.95, 1, 1.35] : last ? [0.5, 0.8, 0.95, 1] : env.scale,
+    first
+      ? [0.95, 1, 1.9]
+      : last
+        ? [env.scale[0], env.scale[1], 1, 1]
+        : env.scale,
   );
-  const y = useTransform(
+  const yDvh = useTransform(
     progress,
     input,
-    first ? [-8, 8, 240] : last ? [-150, -60, -8, 8] : env.y,
+    first ? [-1, 1, 38] : last ? [env.y[0], env.y[1], 0, 0] : env.y,
   );
+  // envelopes are authored in dvh (see Envelope) so a station emerging at the
+  // road's horizon lands there on any screen, not just a 900px-tall one
+  const y = useTransform(yDvh, (v) => `${v}dvh`);
   // only the station in its reading zone takes clicks — invisible stations
-  // overlap it and must not swallow links/buttons. The envelopes guarantee
-  // no two stations exceed 0.9 at once.
+  // overlap it and must not swallow links/buttons. The schedule above keeps the
+  // >0.9 windows disjoint: a station is past 0.9 only between roughly `arrive`
+  // and `depart`, and the next one does not reach it until its own slice.
   const pointerEvents = useTransform(opacity, (v) =>
     v > 0.9 ? "auto" : "none",
   );
@@ -397,8 +444,11 @@ function Station({
             : wide
               ? "max-w-6xl"
               : "max-w-3xl",
-          // planted monuments grow up from their base in the grass
-          align === "ground" && "origin-bottom",
+          // planted monuments grow up from their base in the grass, and road
+          // travelers grow up out of the road surface they are standing on —
+          // scaling about the centre instead would read as a layer zooming,
+          // not as something coming toward you down the path
+          (align === "ground" || placement === "road") && "origin-bottom",
         )}
       >
         {children}

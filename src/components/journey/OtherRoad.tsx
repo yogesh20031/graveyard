@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
-import type { BranchKey } from "./Crossroads";
+import type { BranchKey } from "./RoadContext";
 
 const ROAD_NAMES: Record<BranchKey, string> = {
   trials: "The Trials",

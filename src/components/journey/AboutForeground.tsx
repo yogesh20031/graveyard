@@ -1,9 +1,15 @@
+"use client";
+
+import { motion } from "motion/react";
+import type { MotionValue } from "motion/react";
 import {
   SCENE_ASPECT,
   SCENE_VIEW_BOX,
   tombstonePath,
 } from "@/components/landing/scene/geometry";
 import type { Tombstone } from "@/components/landing/scene/geometry";
+import { cn } from "@/lib/cn";
+import { useLitBranch } from "./RoadContext";
 
 // The feet-level, first-person layer: a dark ground mass with the dirt
 // road running out from under you, grave rows flanking it, and the stones
@@ -11,6 +17,29 @@ import type { Tombstone } from "@/components/landing/scene/geometry";
 // light path and pale stones only read as such when cut into dark ground.
 
 const HORIZON = 596;
+
+// Where the road splits, in this SVG's own coordinates.
+//
+// The mouth opens at (532, 716) — solved off Road()'s left cubic — so the fork
+// grows out of the road already being walked. The crotch sits well down the
+// road toward the viewer, and the arms vanish only modestly either side of the
+// road's own vanishing point: the ground plane here is barely a quarter of the
+// frame tall, so an arm reaching for the far corners would have almost no
+// vertical rise left and would read as a beam of light lying on the horizon
+// rather than a road going away from you. Short and steep is what looks deep.
+const CROTCH_X = 720;
+const CROTCH_Y = 706;
+const ARM_LEFT_TIP_X = 478;
+const ARM_RIGHT_TIP_X = 962;
+
+// Each arm: out along its near edge to the tip on the horizon, then back down
+// its far edge to the crotch, and closed across the mouth it shares with the
+// road's stem. Drawn twice — once as trodden earth, once as the amber wash that
+// lights the road being pointed at.
+const ARM_LEFT =
+  "M532 716 C 514 678 494 636 482 600 L 478 596 L 490 601 C 552 636 644 675 720 706 Z";
+const ARM_RIGHT =
+  "M908 716 C 926 678 946 636 958 600 L 962 596 L 950 601 C 888 636 796 675 720 706 Z";
 
 type PlantedStone = Tombstone & { baseY: number; tilt?: number };
 
@@ -32,7 +61,12 @@ const NEAR_ROW: PlantedStone[] = [
   { x: 1150, width: 48, height: 66, baseY: 720, fillClass: "fill-foreground/10", tilt: 4 },
 ];
 
-export function AboutForeground() {
+type AboutForegroundProps = {
+  /** 0 = the road runs straight on; 1 = it has split in two ahead of you */
+  fork?: MotionValue<number>;
+};
+
+export function AboutForeground({ fork }: AboutForegroundProps) {
   return (
     <svg
       aria-hidden="true"
@@ -47,13 +81,186 @@ export function AboutForeground() {
       />
 
       <Road />
+      {/* the split, painted over the road's far half — under the graves, so the
+          stones still stand in front of it */}
+      <ForkArms fork={fork} />
       <GraveRows />
       <FlankingGraves />
       <FenceFragment />
       <DeadShrub />
+      {/* the signpost stands in the crook, in front of the grave rows */}
+      <Signpost fork={fork} />
       <SkeletalHand />
       <BonesAndGrass />
     </svg>
+  );
+}
+
+// The road forking, in the scene's own coordinate space — so it registers with
+// the road being walked by construction rather than by tuning.
+//
+// The stem is never redrawn: Road() already runs from your feet to the horizon,
+// and the wedge below simply grows grass over its far half, turning the single
+// road into a Y. The arms then open out of the crotch toward their own
+// vanishing points. `fork` fades the whole thing in as you approach and out
+// again once the junction is behind you.
+function ForkArms({ fork }: { fork?: MotionValue<number> }) {
+  const lit = useLitBranch();
+
+  return (
+    <motion.g style={{ opacity: fork }}>
+      {/* grass reclaims the road ahead, between the two new ones — this is what
+          turns the single road into a Y: it grows over the old road's far half,
+          so the stem itself never has to be redrawn */}
+      <path
+        d={`M${CROTCH_X} ${CROTCH_Y} L ${ARM_LEFT_TIP_X} 596 L ${ARM_RIGHT_TIP_X} 596 Z`}
+        className="fill-surface"
+      />
+
+      {/* left arm — the Trials */}
+      <path
+        d={ARM_LEFT}
+        className="fill-foreground/8"
+      />
+      <path
+        d={ARM_LEFT}
+        className={cn(
+          "fill-accent/25 transition-opacity duration-500",
+          lit === "trials" ? "opacity-100" : "opacity-0",
+        )}
+      />
+
+      {/* right arm — the Lessons */}
+      <path
+        d={ARM_RIGHT}
+        className="fill-foreground/8"
+      />
+      <path
+        d={ARM_RIGHT}
+        className={cn(
+          "fill-accent/25 transition-opacity duration-500",
+          lit === "lessons" ? "opacity-100" : "opacity-0",
+        )}
+      />
+
+      {/* half-sunk cobbles running out along each arm, shrinking into each
+          distance — the same cue the straight road uses to read as receding */}
+      <g className="fill-surface/50">
+        <ellipse cx={600} cy={692} rx={9} ry={4} />
+        <ellipse cx={563} cy={661} rx={7} ry={3} />
+        <ellipse cx={524} cy={631} rx={5} ry={2.2} />
+        <ellipse cx={499} cy={611} rx={3.5} ry={1.6} />
+        <ellipse cx={840} cy={692} rx={9} ry={4} />
+        <ellipse cx={877} cy={661} rx={7} ry={3} />
+        <ellipse cx={916} cy={631} rx={5} ry={2.2} />
+        <ellipse cx={941} cy={611} rx={3.5} ry={1.6} />
+      </g>
+
+      {/* tufts on the wedge, and a stone leaning in the crook */}
+      <g className="fill-foreground/10">
+        <path d="M688 678 l4 -14 3 14 4 -10 3 10 Z" />
+        <path d="M748 672 l4 -12 3 12 4 -9 3 9 Z" />
+        <path d="M700 638 l3 -11 2 11 3 -8 2 8 Z" />
+        <path d="M742 630 l3 -10 2 10 3 -7 2 7 Z" />
+        <path d="M714 612 l2 -8 2 8 2 -6 2 6 Z" />
+      </g>
+      <path
+        d="M676 694 v-13 a10 10 0 0 1 20 0 v13 z"
+        transform="rotate(-8 686 694)"
+        className="fill-foreground/10"
+      />
+
+      {/* night fog swallowing the far end of the road not taken */}
+      <ellipse
+        cx={540}
+        cy={640}
+        rx={130}
+        ry={46}
+        fill="url(#fork-fog)"
+        className={cn(
+          "transition-opacity duration-700",
+          lit === "lessons" ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <ellipse
+        cx={900}
+        cy={640}
+        rx={130}
+        ry={46}
+        fill="url(#fork-fog)"
+        className={cn(
+          "transition-opacity duration-700",
+          lit === "trials" ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </motion.g>
+  );
+}
+
+// Standing in the crook of the fork, naming the two roads. Scenery, not
+// controls — the choice is made by the buttons in the Crossroads station over
+// this scene, which carry the accessible names.
+function Signpost({ fork }: { fork?: MotionValue<number> }) {
+  const lit = useLitBranch();
+
+  return (
+    <motion.g style={{ opacity: fork }}>
+      <defs>
+        <radialGradient id="fork-fog">
+          <stop offset="0%" stopColor="var(--background)" stopOpacity={0.9} />
+          <stop offset="100%" stopColor="var(--background)" stopOpacity={0} />
+        </radialGradient>
+      </defs>
+
+      {/* planted at the crotch, so it stands in the ground the roads part around */}
+      <g transform={`rotate(2 ${CROTCH_X} 650)`}>
+        <rect x={716} y={598} width={8} height={108} className="fill-foreground/25" />
+
+        {/* left board — the Trials */}
+        <polygon
+          points="618,622 638,610 818,610 818,634 638,634"
+          className="fill-surface stroke-foreground/25"
+          strokeWidth={2}
+        />
+        <text
+          x={730}
+          y={622}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={15}
+          className={cn(
+            "font-display tracking-etched uppercase transition-colors duration-500",
+            lit === "trials" ? "fill-accent-bright" : "fill-foreground/60",
+          )}
+        >
+          The Trials
+        </text>
+
+        {/* right board — the Lessons */}
+        <polygon
+          points="822,660 802,648 622,648 622,672 802,672"
+          className="fill-surface stroke-foreground/25"
+          strokeWidth={2}
+        />
+        <text
+          x={712}
+          y={660}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize={15}
+          className={cn(
+            "font-display tracking-etched uppercase transition-colors duration-500",
+            lit === "lessons" ? "fill-accent-bright" : "fill-foreground/60",
+          )}
+        >
+          The Lessons
+        </text>
+
+        {/* the dying lantern on top */}
+        <rect x={716} y={588} width={8} height={10} className="fill-foreground/25" />
+        <circle cx={720} cy={581} r={8} className="fill-accent lantern-flicker" />
+      </g>
+    </motion.g>
   );
 }
 

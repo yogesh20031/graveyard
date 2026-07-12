@@ -2,16 +2,17 @@
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLenis } from "lenis/react";
-import { useReducedMotion } from "motion/react";
 import { aboutStations } from "./AboutKeeper";
 import { Crossroads } from "./Crossroads";
-import type { BranchKey } from "./Crossroads";
 import { GraveyardFloor } from "./GraveyardFloor";
 import { WalkStage } from "./JourneyWalk";
 import type { WalkStationConfig } from "./JourneyWalk";
 import { Epilogue, lessonsStations } from "./LessonsUnearthed";
 import { OtherRoad } from "./OtherRoad";
+import { RoadProvider } from "./RoadContext";
+import type { BranchKey } from "./RoadContext";
 import { trialsStations } from "./TrialsExperience";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 
 // namespace each group's keys — several stations share keys ("arrival",
 // "closing") across sections, and the flat walk needs them unique
@@ -30,7 +31,7 @@ type PendingScroll =
 export function GraveyardJourney() {
   const [chosen, setChosen] = useState<BranchKey | null>(null);
   const lenis = useLenis();
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useHydratedReducedMotion();
   const pendingScroll = useRef<PendingScroll | null>(null);
 
   // the road being walked below the fork — Trials until the walker says otherwise
@@ -106,7 +107,8 @@ export function GraveyardJourney() {
         align: "center",
         wide: true,
         enter: "road",
-        node: <Crossroads chosen={chosen} onChoose={handleChoose} />,
+        forksTheRoad: true,
+        node: <Crossroads onChoose={handleChoose} />,
       },
       ...prefixed(walked, branchStations),
       {
@@ -122,17 +124,19 @@ export function GraveyardJourney() {
         node: <Epilogue />,
       },
     ];
-  }, [chosen, walked, handleChoose, handleWalkOther]);
+  }, [walked, handleChoose, handleWalkOther]);
 
   return (
-    <div id="about" className="relative scroll-mt-12">
-      <WalkStage stations={stations} />
-      <GraveyardFloor />
-      <div className="bg-surface px-6 py-10 text-center text-sm text-foreground/40">
-        You walked the whole path. © 2026 Yogesh Khanal — the music haunts a
-        later phase.
+    <RoadProvider chosen={chosen}>
+      <div id="about" className="relative scroll-mt-12">
+        <WalkStage stations={stations} />
+        <GraveyardFloor />
+        <div className="bg-surface px-6 py-10 text-center text-sm text-foreground/40">
+          You walked the whole path. © 2026 Yogesh Khanal — the lantern in the
+          corner keeps the dark company.
+        </div>
       </div>
-    </div>
+    </RoadProvider>
   );
 }
 

@@ -114,7 +114,7 @@ export function Epilogue() {
         </Button>
       </div>
       <p className="font-display text-xs tracking-etched uppercase text-foreground/35">
-        Music haunts this place in a later phase
+        Light the lantern, bottom right — this place has a sound
       </p>
     </div>
   );
