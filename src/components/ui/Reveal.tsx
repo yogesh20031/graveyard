@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 
 type RevealProps = {
   children: ReactNode;
@@ -15,7 +16,7 @@ type RevealProps = {
 // Fade-and-rise once the element scrolls into view. Reusable anywhere;
 // renders a plain div when the user prefers reduced motion.
 export function Reveal({ children, className, delay = 0, y = 24 }: RevealProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useHydratedReducedMotion();
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;

@@ -4,7 +4,6 @@ import { useRef } from "react";
 import type { ReactNode } from "react";
 import {
   motion,
-  useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
@@ -13,6 +12,7 @@ import { FogLayer } from "./scene/FogLayer";
 import { ForegroundLayer } from "./scene/ForegroundLayer";
 import { HillsLayer } from "./scene/HillsLayer";
 import { SkyLayer } from "./scene/SkyLayer";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 
 type ParallaxSceneProps = {
   children: ReactNode;
@@ -26,7 +26,7 @@ type ParallaxSceneProps = {
 // motion API, not static styling.
 export function ParallaxScene({ children }: ParallaxSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useHydratedReducedMotion();
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -50,7 +50,12 @@ export function ParallaxScene({ children }: ParallaxSceneProps) {
 
   if (prefersReducedMotion) {
     return (
-      <div className="relative min-h-dvh overflow-hidden night-sky">
+      // useScroll() above tracks this ref whichever branch renders; leaving it
+      // unattached here makes motion warn that the target never hydrated
+      <div
+        ref={containerRef}
+        className="relative min-h-dvh overflow-hidden night-sky"
+      >
         <StaticLayer>
           <SkyLayer />
         </StaticLayer>

@@ -1,8 +1,8 @@
 "use client";
 
 import { ReactLenis } from "lenis/react";
-import { useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
+import { useHydratedReducedMotion } from "@/hooks/useHydratedReducedMotion";
 
 type SmoothScrollProviderProps = {
   children: ReactNode;
@@ -12,7 +12,7 @@ type SmoothScrollProviderProps = {
 // #journey anchor links scroll smoothly (anchors: true). Users who ask for
 // reduced motion keep native scrolling.
 export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useHydratedReducedMotion();
 
   if (prefersReducedMotion) {
     return <>{children}</>;
