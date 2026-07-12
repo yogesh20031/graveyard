@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cinzel, Geist } from "next/font/google";
+import { MusicPlayer } from "@/components/music/MusicPlayer";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { DEFAULT_THEME } from "@/themes/themes";
 import "./globals.css";
@@ -32,7 +33,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${cinzel.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <SmoothScrollProvider>
+          {children}
+          <MusicPlayer />
+        </SmoothScrollProvider>
       </body>
     </html>
   );
